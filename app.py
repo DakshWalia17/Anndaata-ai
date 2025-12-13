@@ -1,9 +1,18 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+import google.generativeai as genai
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾")
+
+# --- CONFIGURE GENAI (THE CHATBOT) ---
+try:
+    # This grabs the key from the "Secrets" locker we just set up
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except:
+    st.error("⚠️ Google API Key not found. Please set it in Streamlit Secrets.")
 
 # --- TRANSLATION DICTIONARY ---
 translations = {
@@ -22,7 +31,10 @@ translations = {
         "ph": "Soil pH Level",
         "rain": "Rainfall (mm)",
         "analysis": "📊 Soil Analysis",
-        "chart_title": "Soil Nutrients Levels"
+        "chart_title": "Soil Nutrients Levels",
+        "ai_advice": "🤖 Ask AI Agronomist",
+        "ai_btn": "Get Farming Guide for",
+        "ai_prompt": "Give me a practical farming guide for growing {} in India. Keep it short (5 bullet points). Language: English."
     },
     "Hindi": {
         "title": "🌾 अन्नदाता AI: स्मार्ट फसल सलाहकार",
@@ -39,7 +51,10 @@ translations = {
         "ph": "मिट्टी का pH स्तर",
         "rain": "वर्षा (mm)",
         "analysis": "📊 मिट्टी का विश्लेषण",
-        "chart_title": "मिट्टी के पोषक तत्व"
+        "chart_title": "मिट्टी के पोषक तत्व",
+        "ai_advice": "🤖 AI कृषि विशेषज्ञ से पूछें",
+        "ai_btn": "के लिए खेती की गाइड प्राप्त करें",
+        "ai_prompt": "मुझे भारत में {} उगाने के लिए एक व्यावहारिक खेती गाइड दें। इसे छोटा रखें (5 बुलेट पॉइंट)। भाषा: हिंदी।"
     },
     "Punjabi": {
         "title": "🌾 ਅੰਨਦਾਤਾ AI: ਫਸਲ ਸਲਾਹਕਾਰ",
@@ -56,7 +71,10 @@ translations = {
         "ph": "ਮਿੱਟੀ ਦਾ pH ਪੱਧਰ",
         "rain": "ਮੀਂਹ (mm)",
         "analysis": "📊 ਮਿੱਟੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ",
-        "chart_title": "ਮਿੱਟੀ ਦੇ ਪੌਸ਼ਟਿਕ ਤੱਤ"
+        "chart_title": "ਮਿੱਟੀ ਦੇ ਪੌਸ਼ਟਿਕ ਤੱਤ",
+        "ai_advice": "🤖 AI ਖੇਤੀ ਮਾਹਰ ਤੋਂ ਪੁੱਛੋ",
+        "ai_btn": "ਲਈ ਖੇਤੀ ਗਾਈਡ ਪ੍ਰਾਪਤ ਕਰੋ",
+        "ai_prompt": "ਮੈਨੂੰ ਭਾਰਤ ਵਿੱਚ {} ਉਗਾਉਣ ਲਈ ਇੱਕ ਵਿਹਾਰਕ ਖੇਤੀ ਗਾਈਡ ਦਿਓ। ਇਸਨੂੰ ਛੋਟਾ ਰੱਖੋ (5 ਬਿੰਦੂ)। ਭਾਸ਼ਾ: ਪੰਜਾਬੀ।"
     }
 }
 
@@ -71,7 +89,6 @@ st.write(t['desc'])
 st.sidebar.header(t['sidebar_title'])
 
 def user_input_features():
-    # Input sliders
     N = st.sidebar.slider(t['N'], 0, 140, 50)
     P = st.sidebar.slider(t['P'], 5, 145, 50)
     K = st.sidebar.slider(t['K'], 5, 205, 50)
@@ -80,15 +97,7 @@ def user_input_features():
     ph = st.sidebar.slider(t['ph'], 0.0, 14.0, 7.0)
     rainfall = st.sidebar.number_input(t['rain'], 0.0, 300.0, 100.0)
     
-    data = {
-        'N': N,
-        'P': P,
-        'K': K,
-        'temperature': temperature,
-        'humidity': humidity,
-        'ph': ph,
-        'rainfall': rainfall
-    }
+    data = {'N': N, 'P': P, 'K': K, 'temperature': temperature, 'humidity': humidity, 'ph': ph, 'rainfall': rainfall}
     features = pd.DataFrame(data, index=[0])
     return features
 
@@ -108,24 +117,37 @@ try:
 
     if st.button(t['predict_button']):
         prediction = clf.predict(input_df)
+        predicted_crop = prediction[0].upper()
         
         # 1. Show Text Result
-        st.success(f"{t['result_text']} **{prediction[0].upper()}**")
+        st.success(f"{t['result_text']} **{predicted_crop}**")
         st.info(t['success_msg'])
         
-        # 2. Show Visual Chart (Now with translated labels!)
-        st.write("---") # A divider line
+        # 2. Show Visual Chart
+        st.write("---") 
         st.subheader(t['chart_title'])
-        
-        # Creating a dynamic chart based on language
         chart_data = pd.DataFrame({
             'Nutrient': [t['N'], t['P'], t['K']],
             'Value': [input_df['N'][0], input_df['P'][0], input_df['K'][0]]
         })
-        
-        # Display the Bar Chart
         st.bar_chart(chart_data.set_index('Nutrient'))
+        
+        # 3. GEN AI SECTION (NEW!)
+        st.write("---")
+        st.subheader(t['ai_advice'])
+        
+        # Only run this if the user clicks the "Get Guide" button to save API quota
+        if st.button(f"{t['ai_btn']} {predicted_crop}"):
+            with st.spinner("Asking Google Gemini AI..."):
+                try:
+                    # Create the prompt dynamically
+                    prompt = t['ai_prompt'].format(predicted_crop)
+                    response = model.generate_content(prompt)
+                    st.markdown(response.text)
+                except Exception as e:
+                    st.error(f"AI Connection Failed: {e}")
 
 except FileNotFoundError:
     st.error("⚠️ Error: 'Crop_recommendation.csv' file not found.")
+
 
