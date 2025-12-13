@@ -1,23 +1,104 @@
 import streamlit as st
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 import google.generativeai as genai
 
-st.title("🤖 API Diagnostic Check")
+# --- PAGE CONFIGURATION ---
+st.set_page_config(page_title="AnnDaata AI", page_icon="🌾")
 
-# 1. Get Key
-api_key = st.secrets["GOOGLE_API_KEY"]
-st.write(f"Key found: `{api_key[:5]}...`")
-
-# 2. Configure
-genai.configure(api_key=api_key)
-
-# 3. List Models
-st.write("### Available Models:")
+# --- CONFIGURE GENAI (THE CHATBOT) ---
 try:
-    for m in genai.list_models():
-        if 'generateContent' in m.supported_generation_methods:
-            st.code(m.name)
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    # Using the specific model your key has access to
+    model = genai.GenerativeModel('gemini-2.5-flash')
 except Exception as e:
-    st.error(f"Error listing models: {e}")
+    st.error(f"⚠️ API Key Error: {e}")
+
+# --- TRANSLATION DICTIONARY ---
+translations = {
+    "English": {
+        "title": "🌾 AnnDaata AI: Smart Crop Advisor",
+        "desc": "This AI-powered tool suggests the best crop to grow based on soil and weather conditions.",
+        "sidebar_title": "Enter Soil & Weather Details",
+        "predict_button": "Recommend Crop",
+        "result_text": "Recommended Crop:",
+        "success_msg": "Ensure proper drainage for this crop.",
+        "N": "Nitrogen",
+        "P": "Phosphorus",
+        "K": "Potassium",
+        "temp": "Temperature (°C)",
+        "hum": "Humidity (%)",
+        "ph": "Soil pH Level",
+        "rain": "Rainfall (mm)",
+        "analysis": "📊 Soil Analysis",
+        "chart_title": "Soil Nutrients Levels",
+        "ai_advice": "🤖 Ask AI Agronomist",
+        "ai_btn": "Get Farming Guide for",
+        "ai_prompt": "Give me a practical farming guide for growing {} in India. Keep it short (5 bullet points). Language: English."
+    },
+    "Hindi": {
+        "title": "🌾 अन्नदाता AI: स्मार्ट फसल सलाहकार",
+        "desc": "यह एआई टूल मिट्टी और मौसम की स्थिति के आधार पर सबसे अच्छी फसल का सुझाव देता है।",
+        "sidebar_title": "मिट्टी और मौसम का विवरण",
+        "predict_button": "फसल का सुझाव दें",
+        "result_text": "सुझाई गई फसल:",
+        "success_msg": "इस फसल के लिए उचित जल निकासी सुनिश्चित करें।",
+        "N": "नाइट्रोजन",
+        "P": "फॉस्फोरस",
+        "K": "पोटेशियम",
+        "temp": "तापमान (°C)",
+        "hum": "नमी (%)",
+        "ph": "मिट्टी का pH स्तर",
+        "rain": "वर्षा (mm)",
+        "analysis": "📊 मिट्टी का विश्लेषण",
+        "chart_title": "मिट्टी के पोषक तत्व",
+        "ai_advice": "🤖 AI कृषि विशेषज्ञ से पूछें",
+        "ai_btn": "के लिए खेती की गाइड प्राप्त करें",
+        "ai_prompt": "मुझे भारत में {} उगाने के लिए एक व्यावहारिक खेती गाइड दें। इसे छोटा रखें (5 बुलेट पॉइंट)। भाषा: हिंदी।"
+    },
+    "Punjabi": {
+        "title": "🌾 ਅੰਨਦਾਤਾ AI: ਫਸਲ ਸਲਾਹਕਾਰ",
+        "desc": "ਇਹ AI ਟੂਲ ਮਿੱਟੀ ਅਤੇ ਮੌਸਮ ਦੇ ਅਧਾਰ ਤੇ ਵਧੀਆ ਫਸਲ ਦਾ ਸੁਝਾਅ ਦਿੰਦਾ ਹੈ।",
+        "sidebar_title": "ਮਿੱਟੀ ਅਤੇ ਮੌਸਮ ਦਾ ਵੇਰਵਾ",
+        "predict_button": "ਫਸਲ ਦੀ ਸਿਫਾਰਸ਼ ਕਰੋ",
+        "result_text": "ਸਿਫਾਰਸ਼ ਕੀਤੀ ਫਸਲ:",
+        "success_msg": "ਇਸ ਫਸਲ ਲਈ ਉਚਿਤ ਪਾਣੀ ਦੀ ਨਿਕਾਸੀ ਯਕੀਨੀ ਬਣਾਓ।",
+        "N": "ਨਾਈਟ੍ਰੋਜਨ",
+        "P": "ਫਾਸਫੋਰਸ",
+        "K": "ਪੋਟਾਸ਼ੀਅਮ",
+        "temp": "ਤਾਪਮਾਨ (°C)",
+        "hum": "ਨਮੀ (%)",
+        "ph": "ਮਿੱਟੀ ਦਾ pH ਪੱਧਰ",
+        "rain": "ਮੀਂਹ (mm)",
+        "analysis": "📊 ਮਿੱਟੀ ਦਾ ਵਿਸ਼ਲੇਸ਼ਣ",
+        "chart_title": "ਮਿੱਟੀ ਦੇ ਪੌਸ਼ਟਿਕ ਤੱਤ",
+        "ai_advice": "🤖 AI ਖੇਤੀ ਮਾਹਰ ਤੋਂ ਪੁੱਛੋ",
+        "ai_btn": "ਲਈ ਖੇਤੀ ਗਾਈਡ ਪ੍ਰਾਪਤ ਕਰੋ",
+        "ai_prompt": "ਮੈਨੂੰ ਭਾਰਤ ਵਿੱਚ {} ਉਗਾਉਣ ਲਈ ਇੱਕ ਵਿਹਾਰਕ ਖੇਤੀ ਗਾਈਡ ਦਿਓ। ਇਸਨੂੰ ਛੋਟਾ ਰੱਖੋ (5 ਬਿੰਦੂ)। ਭਾਸ਼ਾ: ਪੰਜਾਬੀ।"
+    }
+}
+
+# --- LANGUAGE SELECTOR ---
+lang_choice = st.sidebar.radio("Language / भाषा / ਭਾਸ਼ਾ", ["English", "Hindi", "Punjabi"])
+t = translations[lang_choice]
+
+# --- MAIN APP UI ---
+st.title(t['title'])
+st.write(t['desc'])
+
+st.sidebar.header(t['sidebar_title'])
+
+def user_input_features():
+    N = st.sidebar.slider(t['N'], 0, 140, 50)
+    P = st.sidebar.slider(t['P'], 5, 145, 50)
+    K = st.sidebar.slider(t['K'], 5, 205, 50)
+    temperature = st.sidebar.number_input(t['temp'], 0.0, 50.0, 25.0)
+    humidity = st.sidebar.number_input(t['hum'], 0.0, 100.0, 70.0)
+    ph = st.sidebar.slider(t['ph'], 0.0, 14.0, 7.0)
+    rainfall = st.sidebar.number_input(t['rain'], 0.0, 300.0, 100.0)
+    
+    data
+
 
 
 
