@@ -8,7 +8,6 @@ st.set_page_config(page_title="AnnDaata AI", page_icon="🌾")
 
 # --- CONFIGURE GENAI (THE CHATBOT) ---
 try:
-    # This grabs the key from the "Secrets" locker we just set up
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     model = genai.GenerativeModel('gemini-1.5-flash')
 except:
@@ -115,9 +114,18 @@ try:
     clf = RandomForestClassifier()
     clf.fit(X, Y)
 
+    # --- SESSION STATE LOGIC (THE FIX) ---
+    if 'prediction' not in st.session_state:
+        st.session_state.prediction = None
+
+    # When user clicks "Recommend", save the result in memory
     if st.button(t['predict_button']):
         prediction = clf.predict(input_df)
-        predicted_crop = prediction[0].upper()
+        st.session_state.prediction = prediction[0].upper()
+
+    # If we have a result in memory, show it
+    if st.session_state.prediction:
+        predicted_crop = st.session_state.prediction
         
         # 1. Show Text Result
         st.success(f"{t['result_text']} **{predicted_crop}**")
@@ -132,15 +140,14 @@ try:
         })
         st.bar_chart(chart_data.set_index('Nutrient'))
         
-        # 3. GEN AI SECTION (NEW!)
+        # 3. GEN AI SECTION
         st.write("---")
         st.subheader(t['ai_advice'])
         
-        # Only run this if the user clicks the "Get Guide" button to save API quota
+        # The AI Button
         if st.button(f"{t['ai_btn']} {predicted_crop}"):
             with st.spinner("Asking Google Gemini AI..."):
                 try:
-                    # Create the prompt dynamically
                     prompt = t['ai_prompt'].format(predicted_crop)
                     response = model.generate_content(prompt)
                     st.markdown(response.text)
