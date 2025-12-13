@@ -97,7 +97,67 @@ def user_input_features():
     ph = st.sidebar.slider(t['ph'], 0.0, 14.0, 7.0)
     rainfall = st.sidebar.number_input(t['rain'], 0.0, 300.0, 100.0)
     
-    data
+    data = {'N': N, 'P': P, 'K': K, 'temperature': temperature, 'humidity': humidity, 'ph': ph, 'rainfall': rainfall}
+    features = pd.DataFrame(data, index=[0])
+    return features
+
+input_df = user_input_features()
+
+# Display inputs
+st.subheader(t['analysis'])
+st.write(input_df)
+
+# --- AI ENGINE ---
+try:
+    crop_data = pd.read_csv("Crop_recommendation.csv") 
+    X = crop_data.drop('label', axis=1)
+    Y = crop_data['label']
+    clf = RandomForestClassifier()
+    clf.fit(X, Y)
+
+    # --- SESSION STATE LOGIC ---
+    if 'prediction' not in st.session_state:
+        st.session_state.prediction = None
+
+    # When user clicks "Recommend", save the result in memory
+    if st.button(t['predict_button']):
+        prediction = clf.predict(input_df)
+        st.session_state.prediction = prediction[0].upper()
+
+    # If we have a result in memory, show it
+    if st.session_state.prediction:
+        predicted_crop = st.session_state.prediction
+        
+        # 1. Show Text Result
+        st.success(f"{t['result_text']} **{predicted_crop}**")
+        st.info(t['success_msg'])
+        
+        # 2. Show Visual Chart
+        st.write("---") 
+        st.subheader(t['chart_title'])
+        chart_data = pd.DataFrame({
+            'Nutrient': [t['N'], t['P'], t['K']],
+            'Value': [input_df['N'][0], input_df['P'][0], input_df['K'][0]]
+        })
+        st.bar_chart(chart_data.set_index('Nutrient'))
+        
+        # 3. GEN AI SECTION
+        st.write("---")
+        st.subheader(t['ai_advice'])
+        
+        # The AI Button
+        if st.button(f"{t['ai_btn']} {predicted_crop}"):
+            with st.spinner(f"Gemini AI ({lang_choice}) is thinking..."):
+                try:
+                    prompt = t['ai_prompt'].format(predicted_crop)
+                    response = model.generate_content(prompt)
+                    st.markdown(response.text)
+                except Exception as e:
+                    st.error(f"AI Error: {e}")
+
+except FileNotFoundError:
+    st.error("⚠️ Error: 'Crop_recommendation.csv' file not found.")
+
 
 
 
