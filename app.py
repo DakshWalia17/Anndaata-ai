@@ -9,7 +9,7 @@ st.set_page_config(page_title="AnnDaata AI", page_icon="🌾")
 # --- CONFIGURE GENAI (THE CHATBOT) ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-pro')
 except:
     st.error("⚠️ Google API Key not found. Please set it in Streamlit Secrets.")
 
@@ -156,5 +156,6 @@ try:
 
 except FileNotFoundError:
     st.error("⚠️ Error: 'Crop_recommendation.csv' file not found.")
+
 
 
