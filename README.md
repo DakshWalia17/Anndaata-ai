@@ -21,4 +21,4 @@
 We used the verified [Crop Recommendation Dataset](https://www.kaggle.com/datasets/atharvaingle/crop-recommendation-dataset) containing 2200 samples of Nitrogen, Phosphorous, Potassium, pH, and Weather data.
 
 ---
-*Built for the Hackathon 2025 by Team AnnDaata.*
+*Built for the Hackathon 2025 by Team The Debuggers.*
