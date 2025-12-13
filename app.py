@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 st.set_page_config(page_title="AgriTech: Smart Crop Recommender", page_icon="🌱")
 
 # --- TITLE & DESCRIPTION ---
-st.title("🌱 AgriTech: Smart Crop Advisor")
+st.title("🌱 AnnDaata AI: Smart Crop Advisor")
 st.write("This AI-powered tool suggests the best crop to grow based on soil and weather conditions.")
 
 # --- SIDEBAR (For Inputs) ---
@@ -67,4 +67,5 @@ try:
 except FileNotFoundError:
     st.error("⚠️ Error: 'Crop_recommendation.csv' file not found. Please download it and put it in the same folder!")
 except Exception as e:
+
     st.error(f"An error occurred: {e}")
