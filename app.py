@@ -3,23 +3,31 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import google.generativeai as genai
 
-# --- PAGE CONFIGURATION (MUST BE FIRST) ---
+# --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="AnnDaata AI",
     page_icon="🌾",
     layout="centered"
 )
 
-# --- CUSTOM CSS (THE MAKEUP) ---
-# This makes the buttons green and adds a subtle background fade
+# --- CUSTOM CSS (THE FIX) ---
+# We force text to be BLACK and buttons to be GREEN.
 st.markdown("""
     <style>
+    /* Force the main background color */
     .stApp {
         background-color: #f0f2f6;
     }
+    
+    /* Force all text headers and paragraphs to be DARK GREY (overriding Dark Mode white text) */
+    h1, h2, h3, h4, h5, h6, p, div, span {
+        color: #0d3b10 !important;
+    }
+    
+    /* Style the buttons to be Green */
     div.stButton > button {
-        background-color: #2e7d32;
-        color: white;
+        background-color: #2e7d32 !important;
+        color: white !important;
         border-radius: 10px;
         border: none;
         padding: 10px 24px;
@@ -27,8 +35,14 @@ st.markdown("""
         font-weight: bold;
     }
     div.stButton > button:hover {
-        background-color: #1b5e20;
-        color: white;
+        background-color: #1b5e20 !important;
+        color: white !important;
+    }
+    
+    /* Style the metrics/success messages */
+    .stSuccess {
+        background-color: #c8e6c9 !important;
+        color: #1b5e20 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -83,7 +97,7 @@ translations = {
         "result_text": "ਵਧੀਆ ਫਸਲ:",
         "success_msg": "ਤੁਹਾਡੀ ਮਿੱਟੀ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ।",
         "N": "ਨਾਈਟ੍ਰੋਜਨ", "P": "ਫਾਸਫੋਰਸ", "K": "ਪੋਟਾਸ਼ੀਅਮ",
-        "temp": "ਤਾਪਮਾਨ", "hum": "ਨਮੀ", "ph": "pH ਪੱਧਰ", "rain": "ਮੀਂਹ",
+        "temp": "ਤਾਪਮਾਨ", "hum": "ਨमी", "ph": "pH ਪੱਧਰ", "rain": "ਮੀਂਹ",
         "analysis": "📊 ਵੇਰਵਾ",
         "chart_title": "ਪੌਸ਼ਟਿਕ ਤੱਤ",
         "ai_advice": "🤖 AI ਖੇਤੀ ਮਾਹਰ",
@@ -98,11 +112,10 @@ t = translations[lang_choice]
 # --- UI HEADER WITH LOGO ---
 col1, col2 = st.columns([1, 4])
 with col1:
-    # Make sure 'logo.png' is in your GitHub repo!
     try:
         st.image("logo.png", width=100)
     except:
-        st.write("🌾") # Fallback if logo missing
+        st.write("🌾")
 with col2:
     st.title(t['title'])
     st.markdown(f"**{t['subtitle']}**")
@@ -124,7 +137,6 @@ def user_input_features():
 input_df = user_input_features()
 
 # --- MAIN LAYOUT ---
-# Using columns to show Input Data vs Results side-by-side on large screens
 col_left, col_right = st.columns([1, 1])
 
 with col_left:
@@ -145,6 +157,7 @@ try:
 
     # Centered Predict Button
     with col_left:
+        # Note: I removed type="primary" so our custom Green CSS works
         if st.button(t['predict_button'], use_container_width=True):
             prediction = clf.predict(input_df)
             st.session_state.prediction = prediction[0].upper()
@@ -161,19 +174,28 @@ try:
                 'Nutrient': ['Nitrogen', 'Phosphorus', 'Potassium'],
                 'Value': [input_df['N'][0], input_df['P'][0], input_df['K'][0]]
             })
-            st.bar_chart(chart_data.set_index('Nutrient'), color="#2e7d32")
+            st.bar_chart(chart_data.set_index('Nutrient'))
 
-        # --- GEN AI SECTION (Full Width) ---
+        # --- GEN AI SECTION ---
         st.markdown("---")
         st.subheader(t['ai_advice'])
         
-        if st.button(f"{t['ai_btn']} {predicted_crop}", type="primary"):
+        if st.button(f"{t['ai_btn']} {predicted_crop}"):
             with st.spinner("🤖 AnnDaata AI is thinking..."):
                 try:
                     prompt = t['ai_prompt'].format(predicted_crop)
                     response = model.generate_content(prompt)
+                    
+                    # Styling the Chatbot Box explicitly with BLACK text
                     st.markdown(f"""
-                    <div style="background-color: #e8f5e9; padding: 20px; border-radius: 10px; border-left: 5px solid #2e7d32;">
+                    <div style="
+                        background-color: #e8f5e9; 
+                        padding: 20px; 
+                        border-radius: 10px; 
+                        border-left: 5px solid #2e7d32;
+                        color: #000000;
+                        font-family: sans-serif;
+                    ">
                         {response.text}
                     </div>
                     """, unsafe_allow_html=True)
@@ -182,6 +204,7 @@ try:
 
 except FileNotFoundError:
     st.error("⚠️ Error: 'Crop_recommendation.csv' not found.")
+
 
 
 
