@@ -1,24 +1,64 @@
-# 🌾 AnnDaata AI: Smart Crop Advisor
+# 🌾 AnnDaata AI (Smart Crop Advisor)
 
-**AnnDaata AI** is an intelligent agricultural tool designed to help  farmers maximize their yield by recommending the most suitable crops based on soil nutrients and weather conditions.
+**AnnDaata AI** is a "Hybrid AI" agricultural tool designed to help Indian farmers maximize their yield. It combines **Predictive Machine Learning** to recommend crops and **Generative AI** to provide personalized farming guides in local languages.
 
-### 🚀 Live Demo
-[Click here to view the App](https://anndaata-ai-cs6qdinnpkbhecfijzfgr6.streamlit.app/)
+## 🚀 Key Features
 
-### 💡 Features
-* **AI-Powered:** Uses Random Forest Classifier (99% accuracy).
-* **Vernacular Support:** Fully functional in **English, Hindi, and Punjabi**.
-* **Visual Analytics:** Displays soil nutrient graphs.
-* **Lightweight:** Runs on any browser/smartphone.
+### 1. 🤖 AI Agronomist (Generative AI)
+* **Powered by:** Google Gemini 2.5 Flash.
+* **Function:** Generates instant, practical farming guides (fertilizer schedules, watering needs, disease management).
+* **Multilingual:** Speaks **English, Hindi, and Punjabi** fluently to assist local farmers.
 
-### 🛠️ Tech Stack
-* **Python** (Logic)
-* **Streamlit** (Frontend)
-* **Scikit-Learn** (Machine Learning)
-* **Pandas** (Data Processing)
+### 2. 🧠 Smart Crop Prediction (Predictive AI)
+* **Powered by:** Random Forest Classifier (Scikit-Learn).
+* **Function:** Analyzes soil parameters (N, P, K, pH) and weather data to recommend the most profitable crop.
+* **Accuracy:** Trained on high-quality agricultural datasets.
 
-### 📊 Dataset
-We used the verified [Crop Recommendation Dataset](https://www.kaggle.com/datasets/atharvaingle/crop-recommendation-dataset) containing 2200 samples of Nitrogen, Phosphorous, Potassium, pH, and Weather data.
+### 3. 🇮🇳 Vernacular Interface
+* The entire UI adapts to the farmer's preferred language, making technology accessible to rural users.
 
 ---
-*Built for the Hackathon 2025 by Team The Debuggers.*
+
+## 🛠️ Tech Stack
+* **Frontend:** Streamlit (Python)
+* **Machine Learning:** Scikit-Learn, Pandas, NumPy
+* **Generative AI:** Google Gemini API (`google-generativeai`)
+* **Deployment:** Streamlit Community Cloud
+
+---
+
+## ⚙️ How to Run Locally
+
+1.  **Clone the Repository**
+    ```bash
+    git clone [https://github.com/DakshWalia17/Anndaata-ai.git](https://github.com/DakshWalia17/Anndaata-ai.git)
+    cd Anndaata-ai
+    ```
+
+2.  **Install Dependencies**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+3.  **Set up API Key**
+    * Get your free key from [Google AI Studio](https://aistudio.google.com/).
+    * Create a file named `.streamlit/secrets.toml`.
+    * Add your key:
+        ```toml
+        GOOGLE_API_KEY = "YOUR_API_KEY_HERE"
+        ```
+
+4.  **Run the App**
+    ```bash
+    streamlit run app.py
+    ```
+
+---
+
+## 🔮 Future Roadmap
+* Add computer vision to detect plant diseases from photos.
+* Integrate real-time weather forecasting API.
+* Add voice-to-text support for illiterate farmers.
+
+---
+**Built for the GenAI Hackathon - Chandigarh 2025** 🚀
