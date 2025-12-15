@@ -7,42 +7,42 @@ import google.generativeai as genai
 st.set_page_config(
     page_title="AnnDaata AI",
     page_icon="🌾",
-    layout="centered"
+    layout="wide"
 )
 
-# --- CUSTOM CSS (THE FIX) ---
-# We force text to be BLACK and buttons to be GREEN.
+# --- CUSTOM CSS ---
 st.markdown("""
     <style>
-    /* Force the main background color */
-    .stApp {
-        background-color: #f0f2f6;
-    }
+    .stApp { background-color: #f0f2f6; }
+    h1, h2, h3, h4, h5, h6, p, div, span { color: #0d3b10 !important; }
     
-    /* Force all text headers and paragraphs to be DARK GREY (overriding Dark Mode white text) */
-    h1, h2, h3, h4, h5, h6, p, div, span {
-        color: #0d3b10 !important;
-    }
-    
-    /* Style the buttons to be Green */
+    /* Green Buttons */
     div.stButton > button {
         background-color: #2e7d32 !important;
         color: white !important;
         border-radius: 10px;
-        border: none;
         padding: 10px 24px;
-        font-size: 16px;
         font-weight: bold;
+        border: none;
+        width: 100%; /* Full width on mobile */
     }
-    div.stButton > button:hover {
-        background-color: #1b5e20 !important;
-        color: white !important;
-    }
+    div.stButton > button:hover { background-color: #1b5e20 !important; }
     
-    /* Style the metrics/success messages */
-    .stSuccess {
-        background-color: #c8e6c9 !important;
-        color: #1b5e20 !important;
+    /* Input Box Styling */
+    div[data-baseweb="input"] { border-radius: 10px; }
+    
+    /* Footer Styling */
+    .footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #2e7d32;
+        color: white !important;
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+        z-index: 1000;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -59,15 +59,15 @@ translations = {
     "English": {
         "title": "AnnDaata AI",
         "subtitle": "Smart Crop Advisor 🌾",
-        "desc": "AI-powered precision farming for maximum yield.",
-        "sidebar_title": "🌱 Soil & Weather Data",
+        "input_section": "📝 Enter Field Details",
+        "soil_sec": "Soil Nutrients",
+        "weather_sec": "Weather Conditions",
         "predict_button": "Recommend Crop",
         "result_text": "Best Crop to Plant:",
         "success_msg": "Ideal for your soil conditions.",
         "N": "Nitrogen (N)", "P": "Phosphorus (P)", "K": "Potassium (K)",
-        "temp": "Temperature (°C)", "hum": "Humidity (%)", "ph": "Soil pH", "rain": "Rainfall (mm)",
-        "analysis": "📊 Input Summary",
-        "chart_title": "Soil Nutrient Profile",
+        "temp": "Temperature", "hum": "Humidity", "ph": "Soil pH", "rain": "Rainfall",
+        "analysis": "📊 Analysis Dashboard",
         "ai_advice": "🤖 Ask AI Agronomist",
         "ai_btn": "Get Farming Guide for",
         "ai_prompt": "Give me a practical farming guide for growing {} in India. Keep it short (5 bullet points). Language: English."
@@ -75,76 +75,82 @@ translations = {
     "Hindi": {
         "title": "अन्नदाता AI",
         "subtitle": "स्मार्ट फसल सलाहकार 🌾",
-        "desc": "अधिकतम उपज के लिए एआई-संचालित सटीक खेती।",
-        "sidebar_title": "🌱 मिट्टी और मौसम",
+        "input_section": "📝 खेत का विवरण दर्ज करें",
+        "soil_sec": "मिट्टी के पोषक तत्व",
+        "weather_sec": "मौसम की स्थिति",
         "predict_button": "फसल का सुझाव दें",
         "result_text": "सुझाई गई फसल:",
         "success_msg": "आपकी मिट्टी की स्थिति के लिए आदर्श।",
         "N": "नाइट्रोजन", "P": "फॉस्फोरस", "K": "पोटेशियम",
         "temp": "तापमान", "hum": "नमी", "ph": "pH स्तर", "rain": "वर्षा",
-        "analysis": "📊 इनपुट सारांश",
-        "chart_title": "पोषक तत्व प्रोफ़ाइल",
+        "analysis": "📊 विश्लेषण डैशबोर्ड",
         "ai_advice": "🤖 AI कृषि विशेषज्ञ",
         "ai_btn": "के लिए गाइड प्राप्त करें",
-        "ai_prompt": "मुझे भारत में {} उगाने के लिए एक व्यावहारिक खेती गाइड दें। इसे छोटा रखें (5 बुलेट पॉइंट)। भाषा: हिंदी।"
+        "ai_prompt": "मुझे भारत में {} उगाने के लिए एक व्यावहारिक खेती गाइड दें। इसे छोटा रखें (5 बुलेट पॉइंट)। भाषा: हिंदी."
     },
     "Punjabi": {
         "title": "ਅੰਨਦਾਤਾ AI",
         "subtitle": "ਫਸਲ ਸਲਾਹਕਾਰ 🌾",
-        "desc": "ਵੱਧ ਝਾੜ ਲਈ AI ਅਧਾਰਤ ਖੇਤੀ।",
-        "sidebar_title": "🌱 ਮਿੱਟੀ ਅਤੇ ਮੌਸਮ",
+        "input_section": "📝 ਖੇਤੀ ਦਾ ਵੇਰਵਾ",
+        "soil_sec": "ਮਿੱਟੀ ਦੇ ਤੱਤ",
+        "weather_sec": "ਮੌਸਮ ਦੇ ਹਾਲਾਤ",
         "predict_button": "ਫਸਲ ਲੱਭੋ",
         "result_text": "ਵਧੀਆ ਫਸਲ:",
         "success_msg": "ਤੁਹਾਡੀ ਮਿੱਟੀ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ।",
         "N": "ਨਾਈਟ੍ਰੋਜਨ", "P": "ਫਾਸਫੋਰਸ", "K": "ਪੋਟਾਸ਼ੀਅਮ",
-        "temp": "ਤਾਪਮਾਨ", "hum": "ਨमी", "ph": "pH ਪੱਧਰ", "rain": "ਮੀਂਹ",
-        "analysis": "📊 ਵੇਰਵਾ",
-        "chart_title": "ਪੌਸ਼ਟਿਕ ਤੱਤ",
+        "temp": "ਤਾਪਮਾਨ", "hum": "ਨਮੀ", "ph": "pH ਪੱਧਰ", "rain": "ਮੀਂਹ",
+        "analysis": "📊 ਵਿਸ਼ਲੇਸ਼ਣ",
         "ai_advice": "🤖 AI ਖੇਤੀ ਮਾਹਰ",
         "ai_btn": "ਲਈ ਗਾਈਡ ਲਵੋ",
-        "ai_prompt": "ਮੈਨੂੰ ਭਾਰਤ ਵਿੱਚ {} ਉਗਾਉਣ ਲਈ ਇੱਕ ਵਿਹਾਰਕ ਖੇਤੀ ਗਾਈਡ ਦਿਓ। ਇਸਨੂੰ ਛੋਟਾ ਰੱਖੋ (5 ਬਿੰਦੂ)। ਭਾਸ਼ਾ: ਪੰਜਾਬੀ।"
+        "ai_prompt": "ਮੈਨੂੰ ਭਾਰਤ ਵਿੱਚ {} ਉਗਾਉਣ ਲਈ ਇੱਕ ਵਿਹਾਰਕ ਖੇਤੀ ਗਾਈਡ ਦਿਓ। ਇਸਨੂੰ ਛੋਟਾ ਰੱਖੋ (5 ਬਿੰਦੂ)। ਭਾਸ਼ਾ: ਪੰਜਾਬੀ."
     }
 }
 
-lang_choice = st.sidebar.radio("Language", ["English", "Hindi", "Punjabi"])
-t = translations[lang_choice]
-
-# --- UI HEADER WITH LOGO ---
-col1, col2 = st.columns([1, 4])
-with col1:
+# --- HEADER & LANGUAGE (Top of Page) ---
+c1, c2 = st.columns([1, 5])
+with c1:
     try:
-        st.image("logo.png", width=100)
+        st.image("logo.png", width=80)
     except:
         st.write("🌾")
-with col2:
-    st.title(t['title'])
-    st.markdown(f"**{t['subtitle']}**")
+with c2:
+    # Language selector is now a neat pill button at the top right
+    lang_choice = st.radio("Language", ["English", "Hindi", "Punjabi"], horizontal=True, label_visibility="collapsed")
+
+t = translations[lang_choice]
+st.title(t['title'])
+st.markdown(f"**{t['subtitle']}**")
+st.markdown("---")
+
+# --- MAIN INPUTS (NO SIDEBAR) ---
+st.subheader(t['input_section'])
+
+# Creating a card-like container for inputs
+with st.container():
+    col1, col2 = st.columns(2)
+    
+    # Left Column: Soil
+    with col1:
+        st.markdown(f"**{t['soil_sec']}**")
+        N = st.slider(t['N'], 0, 140, 50)
+        P = st.slider(t['P'], 5, 145, 50)
+        K = st.slider(t['K'], 5, 205, 50)
+        ph = st.slider(t['ph'], 0.0, 14.0, 7.0)
+
+    # Right Column: Weather
+    with col2:
+        st.markdown(f"**{t['weather_sec']}**")
+        temperature = st.number_input(t['temp'] + " (°C)", 0.0, 50.0, 25.0)
+        humidity = st.number_input(t['hum'] + " (%)", 0.0, 100.0, 70.0)
+        rainfall = st.number_input(t['rain'] + " (mm)", 0.0, 300.0, 100.0)
+
+# Create DataFrame from inputs
+input_df = pd.DataFrame({'N': N, 'P': P, 'K': K, 'temperature': temperature, 'humidity': humidity, 'ph': ph, 'rainfall': rainfall}, index=[0])
 
 st.markdown("---")
 
-# --- SIDEBAR INPUTS ---
-st.sidebar.header(t['sidebar_title'])
-def user_input_features():
-    N = st.sidebar.slider(t['N'], 0, 140, 50)
-    P = st.sidebar.slider(t['P'], 5, 145, 50)
-    K = st.sidebar.slider(t['K'], 5, 205, 50)
-    temperature = st.sidebar.number_input(t['temp'], 0.0, 50.0, 25.0)
-    humidity = st.sidebar.number_input(t['hum'], 0.0, 100.0, 70.0)
-    ph = st.sidebar.slider(t['ph'], 0.0, 14.0, 7.0)
-    rainfall = st.sidebar.number_input(t['rain'], 0.0, 300.0, 100.0)
-    return pd.DataFrame({'N': N, 'P': P, 'K': K, 'temperature': temperature, 'humidity': humidity, 'ph': ph, 'rainfall': rainfall}, index=[0])
-
-input_df = user_input_features()
-
-# --- MAIN LAYOUT ---
-col_left, col_right = st.columns([1, 1])
-
-with col_left:
-    st.subheader(t['analysis'])
-    st.write(input_df)
-    st.caption(t['desc'])
-
-# --- AI ENGINE ---
+# --- PREDICTION BUTTON (Full Width) ---
+# Load Model
 try:
     crop_data = pd.read_csv("Crop_recommendation.csv") 
     X = crop_data.drop('label', axis=1)
@@ -155,27 +161,35 @@ try:
     if 'prediction' not in st.session_state:
         st.session_state.prediction = None
 
-    # Centered Predict Button
-    with col_left:
-        # Note: I removed type="primary" so our custom Green CSS works
-        if st.button(t['predict_button'], use_container_width=True):
-            prediction = clf.predict(input_df)
-            st.session_state.prediction = prediction[0].upper()
+    # Big Green Button
+    if st.button(t['predict_button'], use_container_width=True):
+        prediction = clf.predict(input_df)
+        st.session_state.prediction = prediction[0].upper()
 
-    # --- RESULT SECTION ---
+    # --- RESULTS SECTION ---
     if st.session_state.prediction:
         predicted_crop = st.session_state.prediction
         
-        with col_right:
-            st.success(f"{t['result_text']} **{predicted_crop}**")
-            
-            # Chart
-            chart_data = pd.DataFrame({
-                'Nutrient': ['Nitrogen', 'Phosphorus', 'Potassium'],
-                'Value': [input_df['N'][0], input_df['P'][0], input_df['K'][0]]
-            })
-            st.bar_chart(chart_data.set_index('Nutrient'))
-
+        st.markdown("---")
+        
+        # Result Card
+        st.markdown(f"""
+        <div style="background-color: #c8e6c9; padding: 20px; border-radius: 10px; text-align: center;">
+            <h2 style="color: #1b5e20; margin:0;">{t['result_text']} {predicted_crop} 🌾</h2>
+            <p style="color: #1b5e20;">{t['success_msg']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Analysis Charts
+        st.subheader(t['analysis'])
+        chart_col1, chart_col2 = st.columns(2)
+        with chart_col1:
+            st.caption("Nutrients")
+            st.bar_chart(pd.DataFrame({'Value': [N, P, K]}, index=['N', 'P', 'K']))
+        with chart_col2:
+            st.caption("Weather")
+            st.bar_chart(pd.DataFrame({'Value': [temperature, humidity]}, index=['Temp', 'Hum']))
+        
         # --- GEN AI SECTION ---
         st.markdown("---")
         st.subheader(t['ai_advice'])
@@ -186,7 +200,6 @@ try:
                     prompt = t['ai_prompt'].format(predicted_crop)
                     response = model.generate_content(prompt)
                     
-                    # Styling the Chatbot Box explicitly with BLACK text
                     st.markdown(f"""
                     <div style="
                         background-color: #e8f5e9; 
@@ -204,6 +217,15 @@ try:
 
 except FileNotFoundError:
     st.error("⚠️ Error: 'Crop_recommendation.csv' not found.")
+
+# --- FOOTER ---
+st.markdown("""
+<div class="footer">
+    Made with ❤️ by Team AnnDaata | GenAI Hackathon 2025
+</div>
+<div style="margin-bottom: 50px;"></div>
+""", unsafe_allow_html=True)
+
 
 
 
