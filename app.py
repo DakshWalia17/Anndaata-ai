@@ -10,6 +10,33 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- CROP TRANSLATION & EMOJI DATABASE ---
+# This maps the English output from the model to Hindi/Punjabi + Emojis
+crop_details = {
+    'rice': {'emoji': '🍚', 'hi': 'चावल', 'pun': 'ਚੌਲ'},
+    'maize': {'emoji': '🌽', 'hi': 'मक्का', 'pun': 'ਮੱਕੀ'},
+    'chickpea': {'emoji': '🟤', 'hi': 'चना', 'pun': 'ਛੋਲੇ'},
+    'kidneybeans': {'emoji': '🔴', 'hi': 'राजमा', 'pun': 'ਰਾਜਮਾ'},
+    'pigeonpeas': {'emoji': '🟡', 'hi': 'अरहर (तुअर)', 'pun': 'ਅਰਹਰ'},
+    'mothbeans': {'emoji': '🟤', 'hi': 'मोठ', 'pun': 'ਮੋਠ'},
+    'mungbean': {'emoji': '🟢', 'hi': 'मूंग', 'pun': 'ਮੂੰਗੀ'},
+    'blackgram': {'emoji': '⚫', 'hi': 'उड़द', 'pun': 'ਮਾਂਹ'},
+    'lentil': {'emoji': '🍲', 'hi': 'मसूर', 'pun': 'ਮਸੂਰ'},
+    'pomegranate': {'emoji': '🔴', 'hi': 'अनार', 'pun': 'ਅਨਾਰ'},
+    'banana': {'emoji': '🍌', 'hi': 'केला', 'pun': 'ਕੇਲਾ'},
+    'mango': {'emoji': '🥭', 'hi': 'आम', 'pun': 'ਅੰਬ'},
+    'grapes': {'emoji': '🍇', 'hi': 'अंगूर', 'pun': 'ਅੰਗੂਰ'},
+    'watermelon': {'emoji': '🍉', 'hi': 'तरबूज', 'pun': 'ਤਰਬੂਜ'},
+    'muskmelon': {'emoji': '🍈', 'hi': 'खरबूजा', 'pun': 'ਖਰਬੂਜਾ'},
+    'apple': {'emoji': '🍎', 'hi': 'सेब', 'pun': 'ਸੇਬ'},
+    'orange': {'emoji': '🍊', 'hi': 'संतरा', 'pun': 'ਸੰਤਰਾ'},
+    'papaya': {'emoji': '🥣', 'hi': 'पपीता', 'pun': 'ਪਪੀਤਾ'},
+    'coconut': {'emoji': '🥥', 'hi': 'नारियल', 'pun': 'ਨਾਰੀਅਲ'},
+    'cotton': {'emoji': '☁️', 'hi': 'कपास', 'pun': 'ਕਪਾਹ'},
+    'jute': {'emoji': '🧶', 'hi': 'जूट', 'pun': 'ਪਟਸਨ'},
+    'coffee': {'emoji': '☕', 'hi': 'कॉफी', 'pun': 'ਕੌਫੀ'}
+}
+
 # --- CUSTOM CSS ---
 st.markdown("""
     <style>
@@ -24,7 +51,7 @@ st.markdown("""
         padding: 10px 24px;
         font-weight: bold;
         border: none;
-        width: 100%; /* Full width on mobile */
+        width: 100%;
     }
     div.stButton > button:hover { background-color: #1b5e20 !important; }
     
@@ -106,7 +133,7 @@ translations = {
     }
 }
 
-# --- HEADER & LANGUAGE (Top of Page) ---
+# --- HEADER & LANGUAGE ---
 c1, c2 = st.columns([1, 5])
 with c1:
     try:
@@ -114,7 +141,6 @@ with c1:
     except:
         st.write("🌾")
 with c2:
-    # Language selector is now a neat pill button at the top right
     lang_choice = st.radio("Language", ["English", "Hindi", "Punjabi"], horizontal=True, label_visibility="collapsed")
 
 t = translations[lang_choice]
@@ -122,35 +148,28 @@ st.title(t['title'])
 st.markdown(f"**{t['subtitle']}**")
 st.markdown("---")
 
-# --- MAIN INPUTS (NO SIDEBAR) ---
+# --- INPUTS (MOBILE FIRST) ---
 st.subheader(t['input_section'])
 
-# Creating a card-like container for inputs
 with st.container():
     col1, col2 = st.columns(2)
-    
-    # Left Column: Soil
     with col1:
         st.markdown(f"**{t['soil_sec']}**")
         N = st.slider(t['N'], 0, 140, 50)
         P = st.slider(t['P'], 5, 145, 50)
         K = st.slider(t['K'], 5, 205, 50)
         ph = st.slider(t['ph'], 0.0, 14.0, 7.0)
-
-    # Right Column: Weather
     with col2:
         st.markdown(f"**{t['weather_sec']}**")
         temperature = st.number_input(t['temp'] + " (°C)", 0.0, 50.0, 25.0)
         humidity = st.number_input(t['hum'] + " (%)", 0.0, 100.0, 70.0)
         rainfall = st.number_input(t['rain'] + " (mm)", 0.0, 300.0, 100.0)
 
-# Create DataFrame from inputs
 input_df = pd.DataFrame({'N': N, 'P': P, 'K': K, 'temperature': temperature, 'humidity': humidity, 'ph': ph, 'rainfall': rainfall}, index=[0])
 
 st.markdown("---")
 
-# --- PREDICTION BUTTON (Full Width) ---
-# Load Model
+# --- PREDICTION & DISPLAY ---
 try:
     crop_data = pd.read_csv("Crop_recommendation.csv") 
     X = crop_data.drop('label', axis=1)
@@ -161,26 +180,38 @@ try:
     if 'prediction' not in st.session_state:
         st.session_state.prediction = None
 
-    # Big Green Button
     if st.button(t['predict_button'], use_container_width=True):
         prediction = clf.predict(input_df)
-        st.session_state.prediction = prediction[0].upper()
+        st.session_state.prediction = prediction[0].lower() # Convert to lowercase for dictionary lookup
 
-    # --- RESULTS SECTION ---
     if st.session_state.prediction:
-        predicted_crop = st.session_state.prediction
+        # 1. Get English Name
+        raw_crop = st.session_state.prediction
         
+        # 2. Get Translated Name & Emoji
+        crop_info = crop_details.get(raw_crop, {'emoji': '🌿', 'hi': raw_crop, 'pun': raw_crop})
+        
+        if lang_choice == "Hindi":
+            display_name = f"{crop_info['hi']} {crop_info['emoji']}"
+            search_term = crop_info['hi'] # Send Hindi to Gemini
+        elif lang_choice == "Punjabi":
+            display_name = f"{crop_info['pun']} {crop_info['emoji']}"
+            search_term = crop_info['pun'] # Send Punjabi to Gemini
+        else:
+            display_name = f"{raw_crop.capitalize()} {crop_info['emoji']}"
+            search_term = raw_crop.capitalize()
+
         st.markdown("---")
         
         # Result Card
         st.markdown(f"""
         <div style="background-color: #c8e6c9; padding: 20px; border-radius: 10px; text-align: center;">
-            <h2 style="color: #1b5e20; margin:0;">{t['result_text']} {predicted_crop} 🌾</h2>
+            <h2 style="color: #1b5e20; margin:0;">{t['result_text']} {display_name}</h2>
             <p style="color: #1b5e20;">{t['success_msg']}</p>
         </div>
         """, unsafe_allow_html=True)
         
-        # Analysis Charts
+        # Charts
         st.subheader(t['analysis'])
         chart_col1, chart_col2 = st.columns(2)
         with chart_col1:
@@ -194,10 +225,11 @@ try:
         st.markdown("---")
         st.subheader(t['ai_advice'])
         
-        if st.button(f"{t['ai_btn']} {predicted_crop}"):
+        if st.button(f"{t['ai_btn']} {display_name}"):
             with st.spinner("🤖 AnnDaata AI is thinking..."):
                 try:
-                    prompt = t['ai_prompt'].format(predicted_crop)
+                    # We send the SEARCH_TERM (Correct Language) to Gemini
+                    prompt = t['ai_prompt'].format(search_term)
                     response = model.generate_content(prompt)
                     
                     st.markdown(f"""
@@ -225,6 +257,7 @@ st.markdown("""
 </div>
 <div style="margin-bottom: 50px;"></div>
 """, unsafe_allow_html=True)
+
 
 
 
