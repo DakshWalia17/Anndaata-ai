@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import google.generativeai as genai
-from gtts import gTTs
+from gtts import gTTS
 import io
 
 # --- PAGE CONFIGURATION ---
@@ -276,6 +276,7 @@ st.markdown("""
 </div>
 <div style="margin-bottom: 50px;"></div>
 """, unsafe_allow_html=True)
+
 
 
 
