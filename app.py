@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import google.generativeai as genai
+from gtts import gTTs
+import io
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -244,6 +246,23 @@ try:
                         {response.text}
                     </div>
                     """, unsafe_allow_html=True)
+                    
+                    st.markdown("### 🔊 Listen / सुनें / ਸੁਣੋ")
+                    
+                    # Logic: Use Hindi voice for Punjabi (since gTTS Punjabi is weak)
+                    lang_map = {'English': 'en', 'Hindi': 'hi', 'Punjabi': 'hi'} 
+                    tts_lang = lang_map.get(lang_choice, 'en')
+                    
+                    with st.spinner("Generating Audio..."):
+                        # Convert Text to Audio
+                        tts = gTTS(text=response.text, lang=tts_lang, slow=False)
+                        
+                        # Save to memory (RAM) for fast playback
+                        audio_bytes = io.BytesIO()
+                        tts.write_to_fp(audio_bytes)
+                        
+                        # Play the Audio
+                        st.audio(audio_bytes, format='audio/mp3')
                 except Exception as e:
                     st.error(f"AI Error: {e}")
 
@@ -257,6 +276,7 @@ st.markdown("""
 </div>
 <div style="margin-bottom: 50px;"></div>
 """, unsafe_allow_html=True)
+
 
 
 
