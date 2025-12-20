@@ -9,7 +9,7 @@ import PIL.Image
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. LANGUAGE DICTIONARIES (COMPLETE UI TRANSLATION) ---
+# --- 2. LANGUAGE DICTIONARIES ---
 translations = {
     "English": {
         "title": "AnnDaata AI 2.0",
@@ -79,7 +79,6 @@ translations = {
     }
 }
 
-# --- 3. CROP NAME TRANSLATIONS ---
 crop_map = {
     'rice': {'hi': 'चावल (Rice)', 'pun': 'ਚੌਲ (Rice)'},
     'maize': {'hi': 'मक्का (Maize)', 'pun': 'ਮੱਕੀ (Maize)'},
@@ -105,24 +104,19 @@ crop_map = {
     'coffee': {'hi': 'कॉफी (Coffee)', 'pun': 'ਕੌਫੀ (Coffee)'}
 }
 
-# --- 4. LANGUAGE SELECTOR (TOP RIGHT) ---
+# --- 3. LANGUAGE SELECTOR ---
 c1, c2 = st.columns([1, 5])
 with c1: st.write("🌾")
 with c2: 
     lang_choice = st.radio("Language / भाषा / ਭਾਸ਼ਾ", ["English", "Hindi", "Punjabi"], horizontal=True)
 
-t = translations[lang_choice] # Load current language dictionary
+t = translations[lang_choice] 
 
-# --- 5. SIDEBAR (SETTINGS & SCHEMES) ---
+# --- 4. SIDEBAR SETUP ---
 with st.sidebar:
     st.title(t['sidebar_title'])
-    
-    # Feature: Sunlight Mode
     mode = st.radio(t['mode'], ["Standard (Green)", "High Contrast (Sunlight)"])
-    
     st.markdown("---")
-    
-    # Feature: Kisan Dhan (Govt Schemes)
     st.header(t['schemes_title'])
     user_state = st.selectbox(t['state_label'], ["Punjab", "Haryana", "UP", "Maharashtra", "Other"])
     land_size = st.number_input(t['land_label'], 1.0, 100.0, 2.5)
@@ -136,33 +130,74 @@ with st.sidebar:
                 response = model.generate_content(scheme_prompt)
                 st.info(response.text)
             except:
-                st.error("Connect to Internet for Schemes.")
+                st.error("Check Internet Connection.")
 
-# --- 6. DYNAMIC CSS (Based on Mode) ---
+# --- 5. FIXED CSS STYLING (Solved Visibility Issues) ---
 if mode == "High Contrast (Sunlight)":
-    # Black & Yellow Theme
+    # Black Background, Yellow Text, Black Button Text
     custom_css = """
     <style>
+    /* Main Background */
     .stApp { background-color: #000000 !important; }
-    h1, h2, h3, h4, p, div, span, label { color: #ffff00 !important; }
-    div.stButton > button { background-color: #ffff00 !important; color: black !important; font-weight: bold; border: 2px solid white; }
-    div[data-baseweb="select"] > div { background-color: #333 !important; color: white !important; }
+    
+    /* All Text Yellow */
+    h1, h2, h3, h4, h5, h6, p, li, span, label, div, .stMarkdown { color: #ffff00 !important; }
+    
+    /* Sidebar Specific Text Fix */
+    section[data-testid="stSidebar"] * { color: #ffff00 !important; }
+    
+    /* Button Fix: Yellow Background, BLACK TEXT */
+    div.stButton > button { 
+        background-color: #ffff00 !important; 
+        color: #000000 !important; /* Force Black Text */
+        font-weight: bold !important;
+        border: 2px solid white !important;
+    }
+    div.stButton > button:hover {
+        background-color: #ffea00 !important;
+        color: #000000 !important;
+    }
+    
+    /* Input Fields Background */
+    div[data-baseweb="select"] > div, div[data-baseweb="input"] > div {
+        background-color: #333 !important; 
+        color: white !important;
+    }
     </style>
     """
 else:
     # Standard Green Theme
     custom_css = """
     <style>
+    /* Main Background */
     .stApp { background-color: #f0f2f6; }
-    h1, h2, h3, h4, h5, p, span, label { color: #0d3b10 !important; }
-    div.stButton > button { background-color: #2e7d32 !important; color: white !important; border-radius: 10px; border: none; }
-    div.stButton > button:hover { background-color: #1b5e20 !important; }
+    
+    /* All Text Dark Green */
+    h1, h2, h3, h4, h5, h6, p, li, span, label, .stMarkdown { color: #0d3b10 !important; }
+    
+    /* Sidebar Specific Text Fix */
+    section[data-testid="stSidebar"] * { color: #0d3b10 !important; }
+    
+    /* Button Fix: Green Background, WHITE TEXT */
+    div.stButton > button { 
+        background-color: #2e7d32 !important; 
+        color: #ffffff !important; /* Force White Text */
+        border-radius: 10px; 
+        border: none; 
+    }
+    div.stButton > button:hover { background-color: #1b5e20 !important; color: white !important; }
+    
+    /* Upload Box Text Fix */
+    div[data-testid="stFileUploader"] label {
+        color: #0d3b10 !important;
+    }
+    
     .footer { position: fixed; bottom: 0; left: 0; width: 100%; background-color: #2e7d32; color: white; text-align: center; padding: 10px; }
     </style>
     """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# --- 7. MAIN HEADER ---
+# --- 6. MAIN APP LOGIC ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     model = genai.GenerativeModel('gemini-2.5-flash')
@@ -171,7 +206,6 @@ except:
 
 st.title(t['title'])
 
-# --- 8. CROP PREDICTION INPUTS (Translated Labels) ---
 col1, col2 = st.columns(2)
 with col1:
     st.subheader(t['soil_header'])
@@ -198,18 +232,17 @@ except:
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
 
-# --- 9. PREDICTION LOGIC & TRANSLATED RESULT ---
+# --- PREDICTION ---
 if st.button(t['predict_btn'], use_container_width=True):
     try:
         pred = clf.predict([[N, P, K, temp, hum, ph, rain]])
         st.session_state.prediction = pred[0]
     except:
-        st.session_state.prediction = "rice" # Fallback
+        st.session_state.prediction = "rice"
 
 if st.session_state.prediction:
     raw_crop = st.session_state.prediction.lower()
     
-    # Translate Crop Name Logic
     if lang_choice == "Hindi":
         display_crop = crop_map.get(raw_crop, {}).get('hi', raw_crop.title())
     elif lang_choice == "Punjabi":
@@ -226,20 +259,17 @@ if st.session_state.prediction:
     
     st.markdown("---")
     
-    # AI Advice
     if st.button(f"{t['ask_ai_btn']} {display_crop}"):
         with st.spinner("AI Agronomist is thinking..."):
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
             response = model.generate_content(prompt)
             
-            # Display Text
             st.markdown(f"""
             <div style="background-color: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32; color:black;">
                 {response.text}
             </div>
             """, unsafe_allow_html=True)
             
-            # AUDIO OUTPUT
             try:
                 tts_lang = 'hi' if lang_choice != 'English' else 'en'
                 tts = gTTS(text=response.text, lang=tts_lang, slow=False)
@@ -247,12 +277,12 @@ if st.session_state.prediction:
                 tts.write_to_fp(audio_bytes)
                 st.audio(audio_bytes, format='audio/mp3')
             except:
-                st.error("Audio Engine Busy.")
+                pass
 
-# --- 10. DR. ANNDAATA (VISION AI) - TRANSLATED ---
+# --- DR. ANNDAATA ---
 st.markdown("---")
 st.subheader(t['dr_header'])
-st.caption(t['upload_label']) # Now translated
+st.caption(t['upload_label'])
 
 uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg"])
 
@@ -260,7 +290,7 @@ if uploaded_file:
     image = PIL.Image.open(uploaded_file)
     st.image(image, width=300)
     
-    if st.button(t['diagnose_btn']): # Button also translated
+    if st.button(t['diagnose_btn']):
         with st.spinner(t['spinner_leaf']):
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
             response = model.generate_content([vision_prompt, image])
@@ -280,6 +310,7 @@ if uploaded_file:
                 pass
 
 st.markdown('<div class="footer">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
+
 
 
 
