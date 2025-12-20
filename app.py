@@ -9,23 +9,57 @@ import PIL.Image
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. CSS STYLING (Standard Green Theme) ---
+# --- 2. CSS STYLING (PERFECT VISIBILITY FIX) ---
 st.markdown("""
     <style>
-    /* Main Background */
+    /* 1. Main Background (Light Grey) */
     .stApp { background-color: #f0f2f6; }
     
-    /* All Headings & Text - Dark Green */
-    h1, h2, h3, h4, h5, h6, p, li, span, label, .stMarkdown { 
+    /* 2. Main Body Text (Dark Green for readability) */
+    .main h1, .main h2, .main h3, .main h4, .main p, .main li, .main span, .main label { 
         color: #0d3b10 !important; 
     }
     
-    /* Sidebar Text Fix */
-    section[data-testid="stSidebar"] * { 
-        color: #0d3b10 !important; 
+    /* --- 3. SIDEBAR FIXES (Dark BG + White Text) --- */
+    section[data-testid="stSidebar"] {
+        background-color: #1b5e20 !important; /* Dark Green BG */
     }
     
-    /* Buttons - Green Background, White Text */
+    /* Force ALL Text in Sidebar to be White */
+    section[data-testid="stSidebar"] .stMarkdown, 
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3, 
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] label, 
+    section[data-testid="stSidebar"] span {
+        color: #ffffff !important;
+    }
+    
+    /* EXCEPTION: Text inside Input Boxes in Sidebar must be Black (because box is white) */
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div, 
+    section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+    }
+    /* Dropdown Options Text */
+    section[data-testid="stSidebar"] div[data-baseweb="popover"] div {
+        color: #000000 !important;
+    }
+    
+    /* --- 4. FILE UPLOADER FIX (White Text for Dark Box) --- */
+    div[data-testid="stFileUploader"] label {
+        color: #ffffff !important; /* Label Text White */
+        font-weight: bold;
+    }
+    div[data-testid="stFileUploader"] {
+        color: #ffffff !important; /* Drag-Drop Text White */
+    }
+    div[data-testid="stFileUploader"] small {
+        color: #e0e0e0 !important; /* "Limit 200MB" Text Light Grey */
+    }
+    
+    /* --- 5. BUTTON STYLING --- */
     div.stButton > button { 
         background-color: #2e7d32 !important; 
         color: #ffffff !important; 
@@ -38,17 +72,7 @@ st.markdown("""
         color: white !important; 
     }
     
-    /* File Uploader Text Fix */
-    div[data-testid="stFileUploader"] label {
-        color: #0d3b10 !important;
-        font-weight: bold;
-    }
-    
-    /* Input Fields Labels */
-    div[data-baseweb="input"] label, div[data-baseweb="slider"] label {
-        color: #0d3b10 !important;
-    }
-
+    /* Footer */
     .footer { 
         position: fixed; bottom: 0; left: 0; width: 100%; 
         background-color: #2e7d32; color: white !important; 
