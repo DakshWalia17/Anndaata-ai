@@ -6,82 +6,10 @@ from gtts import gTTS
 import io
 import PIL.Image
 
-# --- 1. PAGE SETUP ---
+# --- 1. PAGE SETUP (No Custom Colors) ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. CSS STYLING (THE FINAL FIX) ---
-st.markdown("""
-    <style>
-    /* --- MAIN APP (LIGHT MODE) --- */
-    .stApp { 
-        background-color: #f0f2f6; 
-    }
-    
-    /* Force Main Area Text to be Dark Green (So it is visible on Light BG) */
-    .main h1, .main h2, .main h3, .main h4, .main h5, .main p, .main li, .main span, .main label, .main .stMarkdown { 
-        color: #0d3b10 !important; 
-    }
-    
-    /* Fix for "Soil Health" and "Weather" Headers */
-    h1, h2, h3 {
-        color: #0d3b10 !important;
-    }
-    
-    /* --- SIDEBAR (DARK MODE) --- */
-    section[data-testid="stSidebar"] {
-        background-color: #1b5e20 !important; /* Dark Green */
-    }
-    
-    /* Force Sidebar Text to be White */
-    section[data-testid="stSidebar"] h1, 
-    section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3, 
-    section[data-testid="stSidebar"] p, 
-    section[data-testid="stSidebar"] li, 
-    section[data-testid="stSidebar"] span, 
-    section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] .stMarkdown {
-        color: #ffffff !important;
-    }
-    
-    /* Sidebar Input Boxes (White Box, Black Text) */
-    section[data-testid="stSidebar"] div[data-baseweb="select"] > div, 
-    section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-    }
-    section[data-testid="stSidebar"] div[data-baseweb="select"] span {
-        color: #000000 !important;
-    }
-    
-    /* --- BUTTONS --- */
-    div.stButton > button { 
-        background-color: #2e7d32 !important; 
-        color: #ffffff !important; 
-        border-radius: 10px; 
-        border: none;
-        font-weight: bold;
-    }
-    div.stButton > button:hover { 
-        background-color: #1b5e20 !important; 
-        color: white !important; 
-    }
-    
-    /* --- BOXES (Result & AI) --- */
-    div[data-testid="stMarkdownContainer"] > div {
-        color: #0d3b10 !important; /* Default Text inside boxes green */
-    }
-    
-    /* --- FOOTER --- */
-    .footer { 
-        position: fixed; bottom: 0; left: 0; width: 100%; 
-        background-color: #2e7d32; color: white !important; 
-        text-align: center; padding: 10px; z-index: 999;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- 3. LANGUAGE DICTIONARIES ---
+# --- 2. LANGUAGE DICTIONARIES ---
 translations = {
     "English": {
         "title": "AnnDaata AI 2.0",
@@ -173,7 +101,7 @@ crop_map = {
     'coffee': {'hi': 'कॉफी (Coffee)', 'pun': 'ਕੌਫੀ (Coffee)'}
 }
 
-# --- 4. LANGUAGE SELECTOR ---
+# --- 3. LANGUAGE SELECTOR ---
 c1, c2 = st.columns([1, 5])
 with c1: st.write("🌾")
 with c2: 
@@ -181,7 +109,7 @@ with c2:
 
 t = translations[lang_choice] 
 
-# --- 5. SIDEBAR (KISAN DHAN ONLY) ---
+# --- 4. SIDEBAR (KISAN DHAN) ---
 with st.sidebar:
     st.title(t['sidebar_title'])
     st.header(t['schemes_title'])
@@ -199,7 +127,7 @@ with st.sidebar:
             except:
                 st.error("Check Internet Connection.")
 
-# --- 6. MAIN APP LOGIC ---
+# --- 5. MAIN APP HEADER ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     model = genai.GenerativeModel('gemini-2.5-flash')
@@ -208,6 +136,7 @@ except:
 
 st.title(t['title'])
 
+# --- 6. CROP INPUTS ---
 col1, col2 = st.columns(2)
 with col1:
     st.subheader(t['soil_header'])
@@ -234,7 +163,7 @@ except:
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
 
-# --- PREDICTION ---
+# --- 7. PREDICTION SECTION ---
 if st.button(t['predict_btn'], use_container_width=True):
     try:
         pred = clf.predict([[N, P, K, temp, hum, ph, rain]])
@@ -252,27 +181,18 @@ if st.session_state.prediction:
     else:
         display_crop = raw_crop.title()
 
-    # Result Box (Green BG, Dark Green Text)
-    st.markdown(f"""
-    <div style="background-color: #c8e6c9; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #2e7d32;">
-        <h2 style="color: #1b5e20; margin:0;">{t['result_header']} {display_crop} 🌾</h2>
-        <p style="color: #1b5e20;">{t['success']}</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Using Standard Streamlit Success Box (Green) - No Custom CSS
+    st.success(f"{t['result_header']} {display_crop} 🌾")
     
-    st.markdown("---")
+    st.write("---")
     
     if st.button(f"{t['ask_ai_btn']} {display_crop}"):
         with st.spinner("AI Agronomist is thinking..."):
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
             response = model.generate_content(prompt)
             
-            # AI Advice Box (Light Green BG, BLACK Text)
-            st.markdown(f"""
-            <div style="background-color: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32; color: #000000;">
-                {response.text}
-            </div>
-            """, unsafe_allow_html=True)
+            # Using Standard Streamlit Info Box (Blue/Grey)
+            st.info(response.text)
             
             try:
                 tts_lang = 'hi' if lang_choice != 'English' else 'en'
@@ -283,8 +203,8 @@ if st.session_state.prediction:
             except:
                 pass
 
-# --- DR. ANNDAATA ---
-st.markdown("---")
+# --- 8. DR. ANNDAATA SECTION ---
+st.write("---")
 st.subheader(t['dr_header'])
 st.caption(t['upload_label'])
 
@@ -299,12 +219,8 @@ if uploaded_file:
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
             response = model.generate_content([vision_prompt, image])
             
-            # Diagnosis Box (Red BG, BLACK Text)
-            st.markdown(f"""
-            <div style="background-color: #ffcdd2; padding: 15px; border-radius: 10px; border-left: 5px solid #d32f2f; color: #000000;">
-                <b>Diagnosis Report:</b><br>{response.text}
-            </div>
-            """, unsafe_allow_html=True)
+            # Using Standard Streamlit Error/Warning Box (Red/Yellow)
+            st.error(f"Diagnosis Report:\n{response.text}")
             
             try:
                 tts = gTTS(text=response.text, lang='hi', slow=False)
@@ -314,4 +230,4 @@ if uploaded_file:
             except:
                 pass
 
-st.markdown('<div class="footer">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; padding:10px;">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
