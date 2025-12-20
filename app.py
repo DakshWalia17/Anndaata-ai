@@ -4,7 +4,6 @@ from sklearn.ensemble import RandomForestClassifier
 import google.generativeai as genai
 from gtts import gTTS
 import io
-import PIL.Image
 
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
@@ -12,21 +11,18 @@ st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 # --- 2. CONFIGURATION ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # Hum 'gemini-pro' use kar rahe hain jo 100% chalega
+    # Hum 'gemini-pro' use karenge jo text ke liye best aur stable hai
     model = genai.GenerativeModel('gemini-pro')
 except Exception as e:
     st.error(f"Configuration Error: {e}")
 
-# --- 3. HELPER FUNCTION (REAL AI FOR TEXT) ---
+# --- 3. HELPER FUNCTION (TEXT AI) ---
 def get_ai_response(prompt):
-    """
-    Text queries ke liye Real AI use hoga.
-    """
     try:
         response = model.generate_content(prompt)
         return response.text
     except Exception as e:
-        return "⚠️ Network Busy. Showing expert advice."
+        return "⚠️ Network Busy. Unable to fetch AI advice at the moment."
 
 # --- 4. LANGUAGE DATA ---
 translations = {
@@ -43,9 +39,6 @@ translations = {
         "predict_btn": "Recommend Best Crop",
         "result_header": "Best Crop to Grow:",
         "ask_ai_btn": "Ask AI How to Grow",
-        "dr_header": "📸 Dr. AnnDaata (Plant Doctor)",
-        "upload_label": "Upload photo of sick plant",
-        "diagnose_btn": "Diagnose Disease",
         "success": "High Yield Probability"
     },
     "Hindi": {
@@ -61,9 +54,6 @@ translations = {
         "predict_btn": "सबसे अच्छी फसल जानें",
         "result_header": "सुझाई गई फसल:",
         "ask_ai_btn": "AI से खेती का तरीका पूछें",
-        "dr_header": "📸 डॉ. अन्नदाता (पौधा चिकित्सक)",
-        "upload_label": "बीमार पौधे की फोटो डालें",
-        "diagnose_btn": "बीमार पहचानें",
         "success": "अधिक मुनाफे की संभावना"
     },
     "Punjabi": {
@@ -79,9 +69,6 @@ translations = {
         "predict_btn": "ਵਧੀਆ ਫਸਲ ਲੱਭੋ",
         "result_header": "ਸਿਫਾਰਸ਼ ਕੀਤੀ ਫਸਲ:",
         "ask_ai_btn": "AI ਗਾਈਡ ਲਵੋ",
-        "dr_header": "📸 ਡਾ. ਅੰਨਦਾਤਾ (ਪੌਦਾ ਡਾਕਟਰ)",
-        "upload_label": "ਬਿਮਾਰ ਪੌਦੇ ਦੀ ਫੋਟੋ ਪਾਓ",
-        "diagnose_btn": "ਬਿਮਾਰੀ ਲੱਭੋ",
         "success": "ਵਧੇਰੇ ਮੁਨਾਫੇ ਦੀ ਸੰਭਾਵਨਾ"
     }
 }
@@ -96,7 +83,7 @@ crop_map = {
     'mungbean': {'hi': 'मूंग (Mung Bean)', 'pun': 'ਮੂੰਗੀ (Mung Bean)'},
     'blackgram': {'hi': 'उड़द (Black Gram)', 'pun': 'ਮਾਂਹ (Black Gram)'},
     'lentil': {'hi': 'मसूर (Lentil)', 'pun': 'ਮਸੂਰ (Lentil)'},
-    'pomegranate': {'hi': 'अनार (Pomegranate)', 'pun': 'ਅਨਾਰ (Pomegranate)'},
+    'pomegranate': {'hi': 'अनार (Pomegranate)', 'pun': 'अनार (Pomegranate)'},
     'banana': {'hi': 'केला (Banana)', 'pun': 'ਕੇਲਾ (Banana)'},
     'mango': {'hi': 'आम (Mango)', 'pun': 'ਅੰਬ (Mango)'},
     'grapes': {'hi': 'अंगूर (Grapes)', 'pun': 'ਅੰਗੂਰ (Grapes)'},
@@ -105,7 +92,7 @@ crop_map = {
     'apple': {'hi': 'सेब (Apple)', 'pun': 'ਸੇਬ (Apple)'},
     'orange': {'hi': 'संतरा (Orange)', 'pun': 'ਸੰਤਰਾ (Orange)'},
     'papaya': {'hi': 'पपीता (Papaya)', 'pun': 'ਪਪੀਤਾ (Papaya)'},
-    'coconut': {'hi': 'नारियल (Coconut)', 'pun': 'नारियल (Coconut)'},
+    'coconut': {'hi': 'नारियल (Coconut)', 'pun': 'ਨਾਰੀਅਲ (Coconut)'},
     'cotton': {'hi': 'कपास (Cotton)', 'pun': 'ਕਪਾਹ (Cotton)'},
     'jute': {'hi': 'जूट (Jute)', 'pun': 'ਪਟਸਨ (Jute)'},
     'coffee': {'hi': 'कॉफी (Coffee)', 'pun': 'ਕੌਫੀ (Coffee)'}
@@ -120,7 +107,7 @@ with c2:
 t = translations[lang_choice] 
 
 # ==========================================
-# 1. CROP PREDICTION (REAL AI)
+# 1. CROP PREDICTION (Random Forest + AI)
 # ==========================================
 st.markdown("---")
 col1, col2 = st.columns(2)
@@ -167,10 +154,9 @@ if st.session_state.prediction:
     st.success(f"{t['result_header']} {display_crop} 🌾")
     
     if st.button(f"{t['ask_ai_btn']} {display_crop}"):
-        with st.spinner("AI Agronomist is preparing advice..."):
+        with st.spinner("AI Agronomist is thinking..."):
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
-            # ASLI AI CALL (Text wala safe hai)
-            response_text = get_ai_response(prompt) 
+            response_text = get_ai_response(prompt)
             st.info(response_text)
             try:
                 tts_lang = 'hi' if lang_choice != 'English' else 'en'
@@ -182,44 +168,7 @@ if st.session_state.prediction:
                 pass
 
 # ==========================================
-# 2. DR. ANNDAATA (SIMULATED - NO ERROR GUARANTEE)
-# ==========================================
-st.markdown("---")
-st.header(t['dr_header'])
-st.caption(t['upload_label'])
-
-uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg"])
-
-if uploaded_file:
-    image = PIL.Image.open(uploaded_file)
-    st.image(image, width=300)
-    
-    if st.button(t['diagnose_btn'], type="primary"):
-        with st.spinner("Analyzing Leaf Structure..."):
-            
-            # --- BYPASSING API TO PREVENT CRASH ---
-            # Judges will think AI detected this perfectly.
-            
-            simulated_response = ""
-            if lang_choice == "Hindi":
-                simulated_response = "**बीमारी:** पत्तियों का पीलापन (Nitrogen Deficiency)\n**उपचार:**\n1. खेत में यूरिया (Urea) का छिड़काव करें।\n2. पानी की निकासी ठीक करें।\n3. जैविक खाद का प्रयोग करें।"
-            elif lang_choice == "Punjabi":
-                simulated_response = "**ਬਿਮਾਰੀ:** ਪੱਤਿਆਂ ਦਾ ਪੀਲਾਪਨ (Nitrogen Deficiency)\n**ਇਲਾਜ:**\n1. ਖੇਤ ਵਿੱਚ ਯੂਰੀਆ (Urea) ਦੀ ਵਰਤੋਂ ਕਰੋ।\n2. ਪਾਣੀ ਦਾ ਪ੍ਰਬੰਧ ਠੀਕ ਰੱਖੋ।\n3. ਜੈਵਿਕ ਖਾਦ ਪਾਓ।"
-            else:
-                simulated_response = "**Disease:** Nitrogen Deficiency (Yellow Leaves)\n**Cure:**\n1. Apply Urea fertilizer immediately.\n2. Ensure proper soil drainage.\n3. Use organic compost."
-            
-            st.error(f"Diagnosis Report:\n\n{simulated_response}")
-            
-            try:
-                tts = gTTS(text=simulated_response, lang='hi', slow=False)
-                audio_bytes = io.BytesIO()
-                tts.write_to_fp(audio_bytes)
-                st.audio(audio_bytes, format='audio/mp3')
-            except:
-                pass
-
-# ==========================================
-# 3. KISAN DHAN - GOVT SCHEMES (REAL AI)
+# 2. KISAN DHAN - GOVT SCHEMES (AI Text)
 # ==========================================
 st.markdown("---")
 st.header(t['schemes_title'])
@@ -232,9 +181,8 @@ with kc2:
     land_size = st.number_input(t['land_label'], 1.0, 100.0, 2.5)
 
 if st.button(t['find_schemes_btn'], use_container_width=True):
-    with st.spinner("Accessing Government Database..."):
+    with st.spinner("Searching Govt Database..."):
         scheme_prompt = f"List 3 govt schemes for a farmer in {user_state} with {land_size} acres. Focus on subsidies. Output Language: {lang_choice}. Keep it short."
-        # ASLI AI CALL
         response_text = get_ai_response(scheme_prompt)
         st.warning(response_text)
 
