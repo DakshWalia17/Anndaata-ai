@@ -12,13 +12,16 @@ st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
 # --- 2. HACKATHON SAFE FUNCTION (SUPER JUGAAD) ---
 # Ye function kisi bhi haal mein app band nahi hone dega
+# --- 2. HACKATHON SAFE FUNCTION (DEBUG MODE) ---
 def safe_generate_content(model, contents):
     try:
         response = model.generate_content(contents)
         return response.text
     except Exception as e:
+        # Error chupaao mat, dikhao taaki fix kar sakein!
+        st.error(f"⚠️ ACTUAL ERROR: {e}") 
+        return "Demo Mode: Check the red error box above to see what is wrong."
         # Agar API fail ho, ya Quota khtm ho, ya Model na mile -> DEMO ANSWER de do.
-        return "⚠️ **System Busy (Demo Mode Active):**\n\n1. Ensure proper drainage.\n2. Apply Nitrogen-rich fertilizer.\n3. Check leaves for yellowing daily.\n(Live AI is currently overloaded, showing cached advice.)"
 
 # --- 3. LANGUAGE DATA ---
 translations = {
@@ -237,3 +240,4 @@ if st.button(t['find_schemes_btn'], use_container_width=True):
         st.warning(response_text)
 
 st.markdown('<div style="text-align:center; padding:20px; color:grey;">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
+
