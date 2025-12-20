@@ -9,35 +9,52 @@ import PIL.Image
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. CSS STYLING (Standard Light Theme - Matching Screenshots) ---
+# --- 2. CSS STYLING (THE FINAL FIX) ---
 st.markdown("""
     <style>
-    /* 1. Main Background - Light Grey/White */
+    /* --- MAIN APP (LIGHT MODE) --- */
     .stApp { 
         background-color: #f0f2f6; 
     }
     
-    /* 2. Main Text - Dark Green */
-    .main h1, .main h2, .main h3, .main h4, .main p, .main li, .main span, .main label { 
+    /* Force Main Area Text to be Dark Green (So it is visible on Light BG) */
+    .main h1, .main h2, .main h3, .main h4, .main h5, .main p, .main li, .main span, .main label, .main .stMarkdown { 
         color: #0d3b10 !important; 
     }
     
-    /* 3. Sidebar - Dark Green (For Professional Contrast) */
+    /* Fix for "Soil Health" and "Weather" Headers */
+    h1, h2, h3 {
+        color: #0d3b10 !important;
+    }
+    
+    /* --- SIDEBAR (DARK MODE) --- */
     section[data-testid="stSidebar"] {
-        background-color: #1b5e20 !important;
+        background-color: #1b5e20 !important; /* Dark Green */
     }
-    /* Sidebar Text - White */
-    section[data-testid="stSidebar"] * { 
-        color: #ffffff !important; 
+    
+    /* Force Sidebar Text to be White */
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3, 
+    section[data-testid="stSidebar"] p, 
+    section[data-testid="stSidebar"] li, 
+    section[data-testid="stSidebar"] span, 
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stMarkdown {
+        color: #ffffff !important;
     }
-    /* Sidebar Input Boxes - White BG, Black Text */
+    
+    /* Sidebar Input Boxes (White Box, Black Text) */
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div, 
     section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
+    section[data-testid="stSidebar"] div[data-baseweb="select"] span {
+        color: #000000 !important;
+    }
     
-    /* 4. Buttons - Green */
+    /* --- BUTTONS --- */
     div.stButton > button { 
         background-color: #2e7d32 !important; 
         color: #ffffff !important; 
@@ -50,32 +67,12 @@ st.markdown("""
         color: white !important; 
     }
     
-    /* 5. Result Box Styling (From Screenshot) */
-    .result-box {
-        background-color: #c8e6c9; 
-        padding: 20px; 
-        border-radius: 10px; 
-        text-align: center; 
-        border: 2px solid #2e7d32;
+    /* --- BOXES (Result & AI) --- */
+    div[data-testid="stMarkdownContainer"] > div {
+        color: #0d3b10 !important; /* Default Text inside boxes green */
     }
     
-    /* 6. AI & Diagnosis Box Styling */
-    .ai-box {
-        background-color: #e8f5e9; 
-        padding: 15px; 
-        border-radius: 10px; 
-        border-left: 5px solid #2e7d32; 
-        color: #000000 !important; /* Force Black text inside light box */
-    }
-    .error-box {
-        background-color: #ffcdd2; 
-        padding: 15px; 
-        border-radius: 10px; 
-        border-left: 5px solid #d32f2f; 
-        color: #000000 !important;
-    }
-
-    /* Footer */
+    /* --- FOOTER --- */
     .footer { 
         position: fixed; bottom: 0; left: 0; width: 100%; 
         background-color: #2e7d32; color: white !important; 
@@ -255,9 +252,9 @@ if st.session_state.prediction:
     else:
         display_crop = raw_crop.title()
 
-    # Result Box (Styled like Screenshot)
+    # Result Box (Green BG, Dark Green Text)
     st.markdown(f"""
-    <div class="result-box">
+    <div style="background-color: #c8e6c9; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #2e7d32;">
         <h2 style="color: #1b5e20; margin:0;">{t['result_header']} {display_crop} 🌾</h2>
         <p style="color: #1b5e20;">{t['success']}</p>
     </div>
@@ -270,9 +267,9 @@ if st.session_state.prediction:
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
             response = model.generate_content(prompt)
             
-            # AI Answer Box (Styled like Screenshot)
+            # AI Advice Box (Light Green BG, BLACK Text)
             st.markdown(f"""
-            <div class="ai-box">
+            <div style="background-color: #e8f5e9; padding: 15px; border-radius: 10px; border-left: 5px solid #2e7d32; color: #000000;">
                 {response.text}
             </div>
             """, unsafe_allow_html=True)
@@ -302,9 +299,9 @@ if uploaded_file:
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
             response = model.generate_content([vision_prompt, image])
             
-            # Diagnosis Box
+            # Diagnosis Box (Red BG, BLACK Text)
             st.markdown(f"""
-            <div class="error-box">
+            <div style="background-color: #ffcdd2; padding: 15px; border-radius: 10px; border-left: 5px solid #d32f2f; color: #000000;">
                 <b>Diagnosis Report:</b><br>{response.text}
             </div>
             """, unsafe_allow_html=True)
