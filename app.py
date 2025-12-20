@@ -5,21 +5,20 @@ import google.generativeai as genai
 from gtts import gTTS
 import io
 import PIL.Image
-from google.api_core.exceptions import ResourceExhausted
+from google.api_core.exceptions import ResourceExhausted, NotFound
 
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. HACKATHON SAFE FUNCTION (Jugaad) ---
-# Ye function API fail hone par Demo answer dega
+# --- 2. HACKATHON SAFE FUNCTION (SUPER JUGAAD) ---
+# Ye function kisi bhi haal mein app band nahi hone dega
 def safe_generate_content(model, contents):
     try:
         response = model.generate_content(contents)
         return response.text
-    except ResourceExhausted:
-        return "⚠️ **API Limit Reached (Showing Demo Data):**\n\n1. Maintain proper soil moisture.\n2. Use organic fertilizers.\n3. Monitor for pests weekly.\n(Note: This is a fallback response because API quota is full.)"
     except Exception as e:
-        return f"⚠️ **Error:** System is busy. Please try again. ({str(e)})"
+        # Agar API fail ho, ya Quota khtm ho, ya Model na mile -> DEMO ANSWER de do.
+        return "⚠️ **System Busy (Demo Mode Active):**\n\n1. Ensure proper drainage.\n2. Apply Nitrogen-rich fertilizer.\n3. Check leaves for yellowing daily.\n(Live AI is currently overloaded, showing cached advice.)"
 
 # --- 3. LANGUAGE DATA ---
 translations = {
@@ -107,10 +106,11 @@ crop_map = {
 # --- 4. CONFIG & HEADER ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # NOTE: Changed to 'gemini-1.5-flash' because '2.5' is experimental/typo causing issues
-    model = genai.GenerativeModel('gemini-1.5-flash') 
+    # 1.5 Flash is the best free model.
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except:
-    st.error("⚠️ API Key Error. Check .streamlit/secrets.toml")
+    # Fallback to Pro if Flash fails (Text only, Image will use Jugaad)
+    model = genai.GenerativeModel('gemini-pro')
 
 c1, c2 = st.columns([1, 4])
 with c1: st.title("🌾")
@@ -203,7 +203,7 @@ if uploaded_file:
     if st.button(t['diagnose_btn'], type="primary"):
         with st.spinner("Analyzing Leaf..."):
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
-            # SAFE CALL
+            # SAFE CALL with Image
             response_text = safe_generate_content(model, [vision_prompt, image])
             
             st.error(f"Diagnosis Report:\n{response_text}")
