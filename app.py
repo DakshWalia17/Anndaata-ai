@@ -11,7 +11,7 @@ st.set_page_config(page_title="AnnDaata AI 2.0", page_icon="🌾", layout="wide"
 
 # --- 2. SIDEBAR CONTROLS (Sunlight Mode & Schemes) ---
 with st.sidebar:
-    st.image("logo.png", width=100) # Optional: Agar logo file hai toh
+    #st.image("logo.png", width=100) # Optional: Agar logo file hai toh
     st.title("⚙️ Settings")
     
     # Feature: Sunlight Mode (To beat copycats)
@@ -198,6 +198,7 @@ if uploaded_file:
                 pass
 
 st.markdown('<div class="footer">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
+
 
 
 
