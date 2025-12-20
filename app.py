@@ -5,11 +5,23 @@ import google.generativeai as genai
 from gtts import gTTS
 import io
 import PIL.Image
+from google.api_core.exceptions import ResourceExhausted
 
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. LANGUAGE DATA ---
+# --- 2. HACKATHON SAFE FUNCTION (Jugaad) ---
+# Ye function API fail hone par Demo answer dega
+def safe_generate_content(model, contents):
+    try:
+        response = model.generate_content(contents)
+        return response.text
+    except ResourceExhausted:
+        return "⚠️ **API Limit Reached (Showing Demo Data):**\n\n1. Maintain proper soil moisture.\n2. Use organic fertilizers.\n3. Monitor for pests weekly.\n(Note: This is a fallback response because API quota is full.)"
+    except Exception as e:
+        return f"⚠️ **Error:** System is busy. Please try again. ({str(e)})"
+
+# --- 3. LANGUAGE DATA ---
 translations = {
     "English": {
         "title": "AnnDaata AI 2.0",
@@ -92,10 +104,11 @@ crop_map = {
     'coffee': {'hi': 'कॉफी (Coffee)', 'pun': 'ਕੌਫੀ (Coffee)'}
 }
 
-# --- 3. CONFIG & HEADER ---
+# --- 4. CONFIG & HEADER ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    # NOTE: Changed to 'gemini-1.5-flash' because '2.5' is experimental/typo causing issues
+    model = genai.GenerativeModel('gemini-1.5-flash') 
 except:
     st.error("⚠️ API Key Error. Check .streamlit/secrets.toml")
 
@@ -161,11 +174,13 @@ if st.session_state.prediction:
     if st.button(f"{t['ask_ai_btn']} {display_crop}"):
         with st.spinner("AI Agronomist is thinking..."):
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
-            response = model.generate_content(prompt)
-            st.info(response.text)
+            # SAFE CALL
+            response_text = safe_generate_content(model, prompt)
+            
+            st.info(response_text)
             try:
                 tts_lang = 'hi' if lang_choice != 'English' else 'en'
-                tts = gTTS(text=response.text, lang=tts_lang, slow=False)
+                tts = gTTS(text=response_text, lang=tts_lang, slow=False)
                 audio_bytes = io.BytesIO()
                 tts.write_to_fp(audio_bytes)
                 st.audio(audio_bytes, format='audio/mp3')
@@ -188,12 +203,13 @@ if uploaded_file:
     if st.button(t['diagnose_btn'], type="primary"):
         with st.spinner("Analyzing Leaf..."):
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
-            response = model.generate_content([vision_prompt, image])
+            # SAFE CALL
+            response_text = safe_generate_content(model, [vision_prompt, image])
             
-            st.error(f"Diagnosis Report:\n{response.text}")
+            st.error(f"Diagnosis Report:\n{response_text}")
             
             try:
-                tts = gTTS(text=response.text, lang='hi', slow=False)
+                tts = gTTS(text=response_text, lang='hi', slow=False)
                 audio_bytes = io.BytesIO()
                 tts.write_to_fp(audio_bytes)
                 st.audio(audio_bytes, format='audio/mp3')
@@ -201,13 +217,12 @@ if uploaded_file:
                 pass
 
 # ==========================================
-# 3. KISAN DHAN - GOVT SCHEMES (PRIORITY 3 - MOVED TO MAIN PAGE)
+# 3. KISAN DHAN - GOVT SCHEMES (PRIORITY 3)
 # ==========================================
 st.markdown("---")
 st.header(t['schemes_title'])
 st.write("Find financial support & subsidies / आर्थिक मदद खोजें")
 
-# Side-by-side Layout for inputs
 kc1, kc2 = st.columns(2)
 with kc1:
     user_state = st.selectbox(t['state_label'], ["Punjab", "Haryana", "UP", "Maharashtra", "Other"])
@@ -216,11 +231,9 @@ with kc2:
 
 if st.button(t['find_schemes_btn'], use_container_width=True):
     with st.spinner("Searching Govt Database..."):
-        try:
-            scheme_prompt = f"List 3 govt schemes for a farmer in {user_state} with {land_size} acres. Focus on subsidies. Output Language: {lang_choice}. Keep it short."
-            response = model.generate_content(scheme_prompt)
-            st.warning(response.text) # Using Warning box (Yellow) for Money/Gold theme
-        except:
-            st.error("Check Internet Connection.")
+        scheme_prompt = f"List 3 govt schemes for a farmer in {user_state} with {land_size} acres. Focus on subsidies. Output Language: {lang_choice}. Keep it short."
+        # SAFE CALL
+        response_text = safe_generate_content(model, scheme_prompt)
+        st.warning(response_text)
 
 st.markdown('<div style="text-align:center; padding:20px; color:grey;">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
