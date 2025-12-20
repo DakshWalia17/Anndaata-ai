@@ -9,69 +9,77 @@ import PIL.Image
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. CSS STYLING (DARK GREEN THEME - WHITE TEXT) ---
+# --- 2. CSS STYLING (Standard Light Theme - Matching Screenshots) ---
 st.markdown("""
     <style>
-    /* 1. Global Background - DARK GREEN */
+    /* 1. Main Background - Light Grey/White */
     .stApp { 
-        background-color: #0e3d20 !important; /* Very Dark Green */
+        background-color: #f0f2f6; 
     }
     
-    /* 2. GLOBAL TEXT - WHITE */
-    h1, h2, h3, h4, h5, h6, p, li, span, div, label, .stMarkdown { 
+    /* 2. Main Text - Dark Green */
+    .main h1, .main h2, .main h3, .main h4, .main p, .main li, .main span, .main label { 
+        color: #0d3b10 !important; 
+    }
+    
+    /* 3. Sidebar - Dark Green (For Professional Contrast) */
+    section[data-testid="stSidebar"] {
+        background-color: #1b5e20 !important;
+    }
+    /* Sidebar Text - White */
+    section[data-testid="stSidebar"] * { 
         color: #ffffff !important; 
     }
-    
-    /* 3. SIDEBAR - DARKER GREEN */
-    section[data-testid="stSidebar"] {
-        background-color: #052b12 !important; /* Even Darker Green */
-        border-right: 1px solid #ffffff33;
-    }
-    
-    /* 4. BUTTONS - WHITE BACKGROUND, GREEN TEXT (High Contrast) */
-    div.stButton > button { 
-        background-color: #ffffff !important; 
-        color: #0e3d20 !important; 
-        font-weight: bold;
-        border-radius: 8px;
-        border: none;
-    }
-    div.stButton > button:hover { 
-        background-color: #dcedc8 !important; /* Light Green Hover */
-        color: #0e3d20 !important;
-    }
-    
-    /* 5. INPUT FIELDS FIX */
-    /* Input Box Background (White) & Text Inside (Black) */
-    div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
+    /* Sidebar Input Boxes - White BG, Black Text */
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div, 
+    section[data-testid="stSidebar"] div[data-baseweb="input"] > div {
         background-color: #ffffff !important;
         color: #000000 !important;
     }
-    /* Dropdown Arrow & Text inside box */
-    div[data-baseweb="select"] span {
+    
+    /* 4. Buttons - Green */
+    div.stButton > button { 
+        background-color: #2e7d32 !important; 
+        color: #ffffff !important; 
+        border-radius: 10px; 
+        border: none;
+        font-weight: bold;
+    }
+    div.stButton > button:hover { 
+        background-color: #1b5e20 !important; 
+        color: white !important; 
+    }
+    
+    /* 5. Result Box Styling (From Screenshot) */
+    .result-box {
+        background-color: #c8e6c9; 
+        padding: 20px; 
+        border-radius: 10px; 
+        text-align: center; 
+        border: 2px solid #2e7d32;
+    }
+    
+    /* 6. AI & Diagnosis Box Styling */
+    .ai-box {
+        background-color: #e8f5e9; 
+        padding: 15px; 
+        border-radius: 10px; 
+        border-left: 5px solid #2e7d32; 
+        color: #000000 !important; /* Force Black text inside light box */
+    }
+    .error-box {
+        background-color: #ffcdd2; 
+        padding: 15px; 
+        border-radius: 10px; 
+        border-left: 5px solid #d32f2f; 
         color: #000000 !important;
     }
-    /* Slider Color */
-    div[data-baseweb="slider"] div {
-        background-color: #4caf50 !important;
-    }
-    
-    /* 6. FILE UPLOADER */
-    div[data-testid="stFileUploader"] {
-        border: 1px dashed white;
-        padding: 10px;
-        border-radius: 10px;
-    }
-    div[data-testid="stFileUploader"] label {
-        color: #ffffff !important;
-    }
-    
-    /* 7. Footer */
+
+    /* Footer */
     .footer { 
         position: fixed; bottom: 0; left: 0; width: 100%; 
-        background-color: #052b12; color: white !important; 
+        background-color: #2e7d32; color: white !important; 
         text-align: center; padding: 10px; z-index: 999;
-        border-top: 1px solid #ffffff33;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -247,12 +255,11 @@ if st.session_state.prediction:
     else:
         display_crop = raw_crop.title()
 
-    # Result Box (White Translucent so Dark Text is visible inside, or Dark Green with White Text)
-    # User said "Bg dark text white". So let's make Result Box Dark Green too.
+    # Result Box (Styled like Screenshot)
     st.markdown(f"""
-    <div style="background-color: #052b12; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #ffffff;">
-        <h2 style="color: #ffffff !important; margin:0;">{t['result_header']} {display_crop} 🌾</h2>
-        <p style="color: #cccccc !important;">{t['success']}</p>
+    <div class="result-box">
+        <h2 style="color: #1b5e20; margin:0;">{t['result_header']} {display_crop} 🌾</h2>
+        <p style="color: #1b5e20;">{t['success']}</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -263,9 +270,9 @@ if st.session_state.prediction:
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
             response = model.generate_content(prompt)
             
-            # AI Answer Box (Dark Green BG, White Text)
+            # AI Answer Box (Styled like Screenshot)
             st.markdown(f"""
-            <div style="background-color: #052b12; padding: 15px; border-radius: 10px; border-left: 5px solid #ffffff; color: #ffffff;">
+            <div class="ai-box">
                 {response.text}
             </div>
             """, unsafe_allow_html=True)
@@ -295,9 +302,9 @@ if uploaded_file:
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
             response = model.generate_content([vision_prompt, image])
             
-            # Diagnosis Box (Dark Red BG, White Text)
+            # Diagnosis Box
             st.markdown(f"""
-            <div style="background-color: #4a0d0d; padding: 15px; border-radius: 10px; border-left: 5px solid #ff5252; color: #ffffff;">
+            <div class="error-box">
                 <b>Diagnosis Report:</b><br>{response.text}
             </div>
             """, unsafe_allow_html=True)
