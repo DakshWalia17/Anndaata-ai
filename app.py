@@ -6,72 +6,63 @@ from gtts import gTTS
 import io
 import PIL.Image
 
-# --- 1. PAGE SETUP (No Custom Colors) ---
+# --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. LANGUAGE DICTIONARIES ---
+# --- 2. LANGUAGE DATA ---
 translations = {
     "English": {
         "title": "AnnDaata AI 2.0",
-        "sidebar_title": "⚙️ Settings",
-        "schemes_title": "💰 Kisan Dhan",
-        "find_schemes_btn": "Find Schemes",
-        "state_label": "State",
-        "land_label": "Land (Acres)",
-        "soil_header": "🌱 Soil Health",
-        "weather_header": "🌦️ Weather",
+        "schemes_title": "💰 Kisan Dhan (Govt Schemes)",
+        "find_schemes_btn": "Find Schemes for Me",
+        "state_label": "Select State",
+        "land_label": "Land Size (Acres)",
+        "soil_header": "🌱 Soil & Crop Health",
+        "weather_header": "🌦️ Weather Conditions",
         "N": "Nitrogen (N)", "P": "Phosphorus (P)", "K": "Potassium (K)", "ph": "pH Level",
         "temp": "Temperature (°C)", "hum": "Humidity (%)", "rain": "Rainfall (mm)",
-        "predict_btn": "Recommend Crop",
-        "result_header": "Recommended Crop:",
-        "ask_ai_btn": "Get AI Guide for",
+        "predict_btn": "Recommend Best Crop",
+        "result_header": "Best Crop to Grow:",
+        "ask_ai_btn": "Ask AI How to Grow",
         "dr_header": "📸 Dr. AnnDaata (Plant Doctor)",
-        "upload_label": "Upload a photo of the affected plant/leaf",
-        "diagnose_btn": "🔍 Diagnose Disease",
-        "spinner_leaf": "Scanning Leaf...",
-        "spinner_scheme": "Finding Schemes...",
-        "success": "High Profit Probability"
+        "upload_label": "Upload photo of sick plant",
+        "diagnose_btn": "Diagnose Disease",
+        "success": "High Yield Probability"
     },
     "Hindi": {
         "title": "अन्नदाता AI 2.0",
-        "sidebar_title": "⚙️ सेटिंग्स",
-        "schemes_title": "💰 किसान धन (योजनाएं)",
-        "find_schemes_btn": "योजनाएं खोजें",
-        "state_label": "राज्य",
+        "schemes_title": "💰 किसान धन (सरकारी योजनाएं)",
+        "find_schemes_btn": "मेरे लिए योजनाएं खोजें",
+        "state_label": "राज्य चुनें",
         "land_label": "जमीन (एकड़)",
-        "soil_header": "🌱 मिट्टी की सेहत",
-        "weather_header": "🌦️ मौसम",
+        "soil_header": "🌱 मिट्टी और फसल",
+        "weather_header": "🌦️ मौसम की जानकारी",
         "N": "नाइट्रोजन (N)", "P": "फॉस्फोरस (P)", "K": "पोटेशियम (K)", "ph": "pH स्तर",
         "temp": "तापमान (°C)", "hum": "नमी (%)", "rain": "वर्षा (mm)",
-        "predict_btn": "फसल सुझाव लें",
+        "predict_btn": "सबसे अच्छी फसल जानें",
         "result_header": "सुझाई गई फसल:",
-        "ask_ai_btn": "AI गाइड प्राप्त करें: ",
+        "ask_ai_btn": "AI से खेती का तरीका पूछें",
         "dr_header": "📸 डॉ. अन्नदाता (पौधा चिकित्सक)",
-        "upload_label": "बीमार पौधे/पत्ते की फोटो अपलोड करें",
-        "diagnose_btn": "🔍 बीमारी पहचानें",
-        "spinner_leaf": "पत्ते की जांच हो रही है...",
-        "spinner_scheme": "योजनाएं खोजी जा रही हैं...",
+        "upload_label": "बीमार पौधे की फोटो डालें",
+        "diagnose_btn": "बीमार पहचानें",
         "success": "अधिक मुनाफे की संभावना"
     },
     "Punjabi": {
         "title": "ਅੰਨਦਾਤਾ AI 2.0",
-        "sidebar_title": "⚙️ ਸੈਟਿੰਗਾਂ",
-        "schemes_title": "💰 ਕਿਸਾਨ ਧਨ (ਸਕੀਮਾਂ)",
+        "schemes_title": "💰 ਕਿਸਾਨ ਧਨ (ਸਰਕਾਰੀ ਸਕੀਮਾਂ)",
         "find_schemes_btn": "ਸਕੀਮਾਂ ਲੱਭੋ",
-        "state_label": "ਰਾਜ",
+        "state_label": "ਰਾਜ ਚੁਣੋ",
         "land_label": "ਜ਼ਮੀਨ (ਏਕੜ)",
         "soil_header": "🌱 ਮਿੱਟੀ ਦੀ ਸਿਹਤ",
         "weather_header": "🌦️ ਮੌਸਮ",
         "N": "ਨਾਈਟ੍ਰੋਜਨ (N)", "P": "ਫਾਸਫੋਰਸ (P)", "K": "ਪੋਟਾਸ਼ੀਅਮ (K)", "ph": "pH ਪੱਧਰ",
         "temp": "ਤਾਪਮਾਨ (°C)", "hum": "ਨਮੀ (%)", "rain": "ਮੀਂਹ (mm)",
-        "predict_btn": "ਫਸਲ ਲੱਭੋ",
+        "predict_btn": "ਵਧੀਆ ਫਸਲ ਲੱਭੋ",
         "result_header": "ਸਿਫਾਰਸ਼ ਕੀਤੀ ਫਸਲ:",
-        "ask_ai_btn": "AI ਗਾਈਡ ਲਵੋ: ",
+        "ask_ai_btn": "AI ਤੋਂ ਪੁੱਛੋ",
         "dr_header": "📸 ਡਾ. ਅੰਨਦਾਤਾ (ਪੌਦਾ ਡਾਕਟਰ)",
-        "upload_label": "ਬਿਮਾਰ ਪੌਦੇ/ਪੱਤੇ ਦੀ ਫੋਟੋ ਅਪਲੋਡ ਕਰੋ",
-        "diagnose_btn": "🔍 ਬਿਮਾਰੀ ਲੱਭੋ",
-        "spinner_leaf": "ਪੱਤੇ ਦੀ ਜਾਂਚ ਹੋ ਰਹੀ ਹੈ...",
-        "spinner_scheme": "ਸਕੀਮਾਂ ਲੱਭੀਆਂ ਜਾ ਰਹੀਆਂ ਹਨ...",
+        "upload_label": "ਬਿਮਾਰ ਪੌਦੇ ਦੀ ਫੋਟੋ ਪਾਓ",
+        "diagnose_btn": "ਬਿਮਾਰੀ ਲੱਭੋ",
         "success": "ਵਧੇਰੇ ਮੁਨਾਫੇ ਦੀ ਸੰਭਾਵਨਾ"
     }
 }
@@ -101,42 +92,25 @@ crop_map = {
     'coffee': {'hi': 'कॉफी (Coffee)', 'pun': 'ਕੌਫੀ (Coffee)'}
 }
 
-# --- 3. LANGUAGE SELECTOR ---
-c1, c2 = st.columns([1, 5])
-with c1: st.write("🌾")
-with c2: 
-    lang_choice = st.radio("Language / भाषा / ਭਾਸ਼ਾ", ["English", "Hindi", "Punjabi"], horizontal=True)
-
-t = translations[lang_choice] 
-
-# --- 4. SIDEBAR (KISAN DHAN) ---
-with st.sidebar:
-    st.title(t['sidebar_title'])
-    st.header(t['schemes_title'])
-    user_state = st.selectbox(t['state_label'], ["Punjab", "Haryana", "UP", "Maharashtra", "Other"])
-    land_size = st.number_input(t['land_label'], 1.0, 100.0, 2.5)
-    
-    if st.button(t['find_schemes_btn']):
-        with st.spinner(t['spinner_scheme']):
-            try:
-                genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-                model = genai.GenerativeModel('gemini-2.5-flash')
-                scheme_prompt = f"List 3 govt schemes for a farmer in {user_state} with {land_size} acres. Focus on subsidies. Output Language: {lang_choice}. Keep it short."
-                response = model.generate_content(scheme_prompt)
-                st.info(response.text)
-            except:
-                st.error("Check Internet Connection.")
-
-# --- 5. MAIN APP HEADER ---
+# --- 3. CONFIG & HEADER ---
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     model = genai.GenerativeModel('gemini-2.5-flash')
 except:
     st.error("⚠️ API Key Error. Check .streamlit/secrets.toml")
 
-st.title(t['title'])
+c1, c2 = st.columns([1, 4])
+with c1: st.title("🌾")
+with c2: 
+    st.title("AnnDaata AI 2.0")
+    lang_choice = st.radio("", ["English", "Hindi", "Punjabi"], horizontal=True)
 
-# --- 6. CROP INPUTS ---
+t = translations[lang_choice] 
+
+# ==========================================
+# 1. CROP PREDICTION (PRIORITY 1)
+# ==========================================
+st.markdown("---")
 col1, col2 = st.columns(2)
 with col1:
     st.subheader(t['soil_header'])
@@ -163,14 +137,15 @@ except:
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
 
-# --- 7. PREDICTION SECTION ---
-if st.button(t['predict_btn'], use_container_width=True):
+# Predict Button
+if st.button(t['predict_btn'], use_container_width=True, type="primary"):
     try:
         pred = clf.predict([[N, P, K, temp, hum, ph, rain]])
         st.session_state.prediction = pred[0]
     except:
         st.session_state.prediction = "rice"
 
+# Result Display
 if st.session_state.prediction:
     raw_crop = st.session_state.prediction.lower()
     
@@ -181,19 +156,13 @@ if st.session_state.prediction:
     else:
         display_crop = raw_crop.title()
 
-    # Using Standard Streamlit Success Box (Green) - No Custom CSS
     st.success(f"{t['result_header']} {display_crop} 🌾")
-    
-    st.write("---")
     
     if st.button(f"{t['ask_ai_btn']} {display_crop}"):
         with st.spinner("AI Agronomist is thinking..."):
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
             response = model.generate_content(prompt)
-            
-            # Using Standard Streamlit Info Box (Blue/Grey)
             st.info(response.text)
-            
             try:
                 tts_lang = 'hi' if lang_choice != 'English' else 'en'
                 tts = gTTS(text=response.text, lang=tts_lang, slow=False)
@@ -203,9 +172,11 @@ if st.session_state.prediction:
             except:
                 pass
 
-# --- 8. DR. ANNDAATA SECTION ---
-st.write("---")
-st.subheader(t['dr_header'])
+# ==========================================
+# 2. DR. ANNDAATA (PRIORITY 2)
+# ==========================================
+st.markdown("---")
+st.header(t['dr_header'])
 st.caption(t['upload_label'])
 
 uploaded_file = st.file_uploader("", type=["jpg", "png", "jpeg"])
@@ -214,12 +185,11 @@ if uploaded_file:
     image = PIL.Image.open(uploaded_file)
     st.image(image, width=300)
     
-    if st.button(t['diagnose_btn']):
-        with st.spinner(t['spinner_leaf']):
+    if st.button(t['diagnose_btn'], type="primary"):
+        with st.spinner("Analyzing Leaf..."):
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
             response = model.generate_content([vision_prompt, image])
             
-            # Using Standard Streamlit Error/Warning Box (Red/Yellow)
             st.error(f"Diagnosis Report:\n{response.text}")
             
             try:
@@ -230,4 +200,27 @@ if uploaded_file:
             except:
                 pass
 
-st.markdown('<div style="text-align:center; padding:10px;">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
+# ==========================================
+# 3. KISAN DHAN - GOVT SCHEMES (PRIORITY 3 - MOVED TO MAIN PAGE)
+# ==========================================
+st.markdown("---")
+st.header(t['schemes_title'])
+st.write("Find financial support & subsidies / आर्थिक मदद खोजें")
+
+# Side-by-side Layout for inputs
+kc1, kc2 = st.columns(2)
+with kc1:
+    user_state = st.selectbox(t['state_label'], ["Punjab", "Haryana", "UP", "Maharashtra", "Other"])
+with kc2:
+    land_size = st.number_input(t['land_label'], 1.0, 100.0, 2.5)
+
+if st.button(t['find_schemes_btn'], use_container_width=True):
+    with st.spinner("Searching Govt Database..."):
+        try:
+            scheme_prompt = f"List 3 govt schemes for a farmer in {user_state} with {land_size} acres. Focus on subsidies. Output Language: {lang_choice}. Keep it short."
+            response = model.generate_content(scheme_prompt)
+            st.warning(response.text) # Using Warning box (Yellow) for Money/Gold theme
+        except:
+            st.error("Check Internet Connection.")
+
+st.markdown('<div style="text-align:center; padding:20px; color:grey;">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
