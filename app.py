@@ -5,25 +5,29 @@ import google.generativeai as genai
 from gtts import gTTS
 import io
 import PIL.Image
-from google.api_core.exceptions import ResourceExhausted, NotFound
 
 # --- 1. PAGE SETUP ---
 st.set_page_config(page_title="AnnDaata AI", page_icon="🌾", layout="wide")
 
-# --- 2. HACKATHON SAFE FUNCTION (SUPER JUGAAD) ---
-# Ye function kisi bhi haal mein app band nahi hone dega
-# --- 2. HACKATHON SAFE FUNCTION (DEBUG MODE) ---
-def safe_generate_content(model, contents):
+# --- 2. CONFIG & MODEL SETUP ---
+try:
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    # Ab hum LATEST model use kar rahe hain
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error(f"⚠️ API Key Error: {e}")
+
+# --- 3. SAFE GENERATE FUNCTION (Real AI) ---
+def safe_generate_content(contents):
     try:
+        # Ye function Text aur Image dono handle karega
         response = model.generate_content(contents)
         return response.text
     except Exception as e:
-        # Error chupaao mat, dikhao taaki fix kar sakein!
-        st.error(f"⚠️ ACTUAL ERROR: {e}") 
-        return "Demo Mode: Check the red error box above to see what is wrong."
-        # Agar API fail ho, ya Quota khtm ho, ya Model na mile -> DEMO ANSWER de do.
+        # Agar koi error aaye toh dikhaye
+        return f"⚠️ Error: {str(e)}"
 
-# --- 3. LANGUAGE DATA ---
+# --- 4. LANGUAGE DATA ---
 translations = {
     "English": {
         "title": "AnnDaata AI 2.0",
@@ -73,7 +77,7 @@ translations = {
         "temp": "ਤਾਪਮਾਨ (°C)", "hum": "ਨਮੀ (%)", "rain": "ਮੀਂਹ (mm)",
         "predict_btn": "ਵਧੀਆ ਫਸਲ ਲੱਭੋ",
         "result_header": "ਸਿਫਾਰਸ਼ ਕੀਤੀ ਫਸਲ:",
-        "ask_ai_btn": "AI ਤੋਂ ਪੁੱਛੋ",
+        "ask_ai_btn": "AI ਗਾਈਡ ਲਵੋ",
         "dr_header": "📸 ਡਾ. ਅੰਨਦਾਤਾ (ਪੌਦਾ ਡਾਕਟਰ)",
         "upload_label": "ਬਿਮਾਰ ਪੌਦੇ ਦੀ ਫੋਟੋ ਪਾਓ",
         "diagnose_btn": "ਬਿਮਾਰੀ ਲੱਭੋ",
@@ -106,15 +110,6 @@ crop_map = {
     'coffee': {'hi': 'कॉफी (Coffee)', 'pun': 'ਕੌਫੀ (Coffee)'}
 }
 
-# --- 4. CONFIG & HEADER ---
-try:
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # 1.5 Flash is the best free model.
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except:
-    # Fallback to Pro if Flash fails (Text only, Image will use Jugaad)
-    model = genai.GenerativeModel('gemini-pro')
-
 c1, c2 = st.columns([1, 4])
 with c1: st.title("🌾")
 with c2: 
@@ -124,7 +119,7 @@ with c2:
 t = translations[lang_choice] 
 
 # ==========================================
-# 1. CROP PREDICTION (PRIORITY 1)
+# 1. CROP PREDICTION
 # ==========================================
 st.markdown("---")
 col1, col2 = st.columns(2)
@@ -140,7 +135,6 @@ with col2:
     rain = st.number_input(t['rain'], 0.0, 300.0, 100.0)
     ph = st.slider(t['ph'], 0.0, 14.0, 7.0)
 
-# Load Model
 try:
     df = pd.read_csv("Crop_recommendation.csv")
     X = df.drop('label', axis=1)
@@ -153,7 +147,6 @@ except:
 if 'prediction' not in st.session_state:
     st.session_state.prediction = None
 
-# Predict Button
 if st.button(t['predict_btn'], use_container_width=True, type="primary"):
     try:
         pred = clf.predict([[N, P, K, temp, hum, ph, rain]])
@@ -161,7 +154,6 @@ if st.button(t['predict_btn'], use_container_width=True, type="primary"):
     except:
         st.session_state.prediction = "rice"
 
-# Result Display
 if st.session_state.prediction:
     raw_crop = st.session_state.prediction.lower()
     
@@ -177,9 +169,8 @@ if st.session_state.prediction:
     if st.button(f"{t['ask_ai_btn']} {display_crop}"):
         with st.spinner("AI Agronomist is thinking..."):
             prompt = f"Give a practical farming guide for {raw_crop} in {lang_choice}. Keep it short (4 bullet points)."
-            # SAFE CALL
-            response_text = safe_generate_content(model, prompt)
-            
+            # REAL AI
+            response_text = safe_generate_content(prompt)
             st.info(response_text)
             try:
                 tts_lang = 'hi' if lang_choice != 'English' else 'en'
@@ -191,7 +182,7 @@ if st.session_state.prediction:
                 pass
 
 # ==========================================
-# 2. DR. ANNDAATA (PRIORITY 2)
+# 2. DR. ANNDAATA (REAL AI)
 # ==========================================
 st.markdown("---")
 st.header(t['dr_header'])
@@ -206,8 +197,8 @@ if uploaded_file:
     if st.button(t['diagnose_btn'], type="primary"):
         with st.spinner("Analyzing Leaf..."):
             vision_prompt = f"Analyze this plant leaf. Identify disease and suggest cure in {lang_choice}. Keep it brief."
-            # SAFE CALL with Image
-            response_text = safe_generate_content(model, [vision_prompt, image])
+            # REAL AI VISION (Passes List [Prompt, Image])
+            response_text = safe_generate_content([vision_prompt, image])
             
             st.error(f"Diagnosis Report:\n{response_text}")
             
@@ -220,7 +211,7 @@ if uploaded_file:
                 pass
 
 # ==========================================
-# 3. KISAN DHAN - GOVT SCHEMES (PRIORITY 3)
+# 3. KISAN DHAN - GOVT SCHEMES (REAL AI)
 # ==========================================
 st.markdown("---")
 st.header(t['schemes_title'])
@@ -235,9 +226,8 @@ with kc2:
 if st.button(t['find_schemes_btn'], use_container_width=True):
     with st.spinner("Searching Govt Database..."):
         scheme_prompt = f"List 3 govt schemes for a farmer in {user_state} with {land_size} acres. Focus on subsidies. Output Language: {lang_choice}. Keep it short."
-        # SAFE CALL
-        response_text = safe_generate_content(model, scheme_prompt)
+        # REAL AI
+        response_text = safe_generate_content(scheme_prompt)
         st.warning(response_text)
 
 st.markdown('<div style="text-align:center; padding:20px; color:grey;">Made with ❤️ by Team Debuggers</div>', unsafe_allow_html=True)
-
